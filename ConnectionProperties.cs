@@ -1,37 +1,50 @@
 using LINQPad.Extensibility.DataContext;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 
 namespace Overby.LINQPad.FileDriver
 {
-	/// <summary>
-	/// Wrapper to read/write connection properties. This acts as our ViewModel - we will bind to it in ConnectionDialog.xaml.
-	/// </summary>
-	class ConnectionProperties
-	{
-		public IConnectionInfo ConnectionInfo { get; private set; }
+    /// <summary>
+    /// Wrapper to read/write connection properties. This acts as our ViewModel - we will bind to it in ConnectionDialog.xaml.
+    /// </summary>
+    class ConnectionProperties : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler PropertyChanged;
 
-		XElement DriverData => ConnectionInfo.DriverData;
+        public IConnectionInfo ConnectionInfo { get; private set; }
 
-		public ConnectionProperties (IConnectionInfo cxInfo)
-		{
-			ConnectionInfo = cxInfo;
-		}
+        XElement DriverData => ConnectionInfo.DriverData;
 
-		// This is how to create custom connection properties.
+        public ConnectionProperties(IConnectionInfo cxInfo)
+        {
+            ConnectionInfo = cxInfo;
+        }
 
-		//public string SomeStringProperty
-		//{
-		//	get => (string)DriverData.Element ("SomeStringProperty") ?? "";
-		//	set => DriverData.SetElementValue ("SomeStringProperty", value);
-		//}
+        public string DataDirectoryPath
+        {
+            get => (string)GetElement();
+            set
+            {
+                if (DataDirectoryPath?.Equals(value) == true)
+                    return;
 
-		//public int SomeIntProperty
-		//{
-		//	get => (int?)DriverData.Element ("SomeIntProperty") ?? 0;
-		//	set => DriverData.SetElementValue ("SomeIntProperty", value);
-		//}
-	}
+                SetDriverData(value);
+            }
+        }
+
+        XElement GetElement([CallerMemberName]string name = null) =>
+            DriverData.Element(name);
+
+        void SetDriverData<T>(T value, [CallerMemberName]string name = null, bool signalPropChange = true)
+        {
+            DriverData.SetElementValue(name, value);
+
+            if (signalPropChange)
+                PropChanged(name);
+        }
+
+        void PropChanged([CallerMemberName]string name = null) => 
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
 }

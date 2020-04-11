@@ -33,6 +33,7 @@
 
 	<ItemGroup>
 		<Content Include="linqpad-samples\\*.*" />
+		<None Remove="Directory.Build.props" />
 		<Folder Include="linqpad-samples\\" />
 	</ItemGroup>	
 

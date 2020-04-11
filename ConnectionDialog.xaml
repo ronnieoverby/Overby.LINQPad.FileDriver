@@ -8,12 +8,14 @@
 	WindowStartupLocation="CenterScreen">
 	
 	<StackPanel Margin="12">
-		<Label Height="50" Content="(Your controls...)" />
 
-		<Label Padding="0,0,0,2">Friendly name for this connection (optional):</Label>
-		<TextBox Name="txtFriendlyName" Padding="2" Text="{Binding ConnectionInfo.DisplayName}" />
+        <Label Padding="0,0,0,2">Data directory path:</Label>
+        <TextBox Name="txtDataDirectoryPath" Padding="2" Text="{Binding DataDirectoryPath}" />
 
-		<DockPanel LastChildFill="False" Margin="0,15,0,0">
+        <Label Padding="0,0,0,2">Friendly name for this connection (optional):</Label>
+        <TextBox Name="txtFriendlyName" Padding="2" Text="{Binding ConnectionInfo.DisplayName}" />
+
+        <DockPanel LastChildFill="False" Margin="0,15,0,0">
 			<CheckBox IsChecked="{Binding ConnectionInfo.Persist}" VerticalAlignment="Center">Remember this connection</CheckBox>
 			<Button Name="btnCancel" DockPanel.Dock="Right" Content="Cancel" Margin="6,0,0,0" Padding="10,3" MinWidth="60" IsCancel="True" TabIndex="2" />
 			<Button Name="btnOK" DockPanel.Dock="Right" Content="OK" Margin="6,0,0,0" Padding="10,3" MinWidth="60" IsDefault="True" TabIndex="1" Click="btnOK_Click" />
