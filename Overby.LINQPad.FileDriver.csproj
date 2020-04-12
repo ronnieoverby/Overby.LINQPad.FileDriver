@@ -1,11 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 	
 	<PropertyGroup>
-		<TargetFrameworks>netcoreapp3.0;net46</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.0</TargetFrameworks>
+    <!--<TargetFrameworks>netcoreapp3.0;net46</TargetFrameworks>-->
 		<UseWpf>true</UseWpf>
 		<AssemblyName>Overby.LINQPad.FileDriver</AssemblyName>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageTags>linqpad-driver</PackageTags>
+		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
@@ -35,6 +37,12 @@
 		<Content Include="linqpad-samples\\*.*" />
 		<None Remove="Directory.Build.props" />
 		<Folder Include="linqpad-samples\\" />
+	</ItemGroup>
+
+	<ItemGroup>
+    <Reference Include="Overby.Extensions.Text">
+      <HintPath>..\Overby.Extensions.CSV\Overby.Extensions.CSV\bin\Release\netstandard2.1\Overby.Extensions.Text.dll</HintPath>
+    </Reference>
 	</ItemGroup>	
 
 	<Target Name="PostBuild1" AfterTargets="PostBuildEvent" Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
