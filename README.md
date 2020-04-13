@@ -57,6 +57,7 @@ The dialog connection will be displayed. Supply a folder and a name for the conn
 
 - Cleanup messy code (I built this thing quickly)
 - Nuget package for LP6
+- CI/CD
 - Enum support for generated types
 - Support more file types
   - tsv
@@ -71,3 +72,5 @@ The dialog connection will be displayed. Supply a folder and a name for the conn
 - Directory recursion
 - Make build dependencies available on nuget
 - Support CSV files without a header line
+- Utilities for easily writing files to the folder
+- Auto populate when a query writes to the folder
