@@ -18,7 +18,7 @@ namespace Overby.LINQPad.FileDriver
                     if (!parsedTypes.TryGetValue(key, out var set))
                         set = parsedTypes[key] = new HashSet<ParsedType>();
 
-                    if (set.Contains(ParsedType.String) || set.Contains(ParsedType.Char))
+                    if (set.Contains(ParsedType.String))
                         // no need
                         continue;
 
@@ -330,38 +330,6 @@ namespace Overby.LINQPad.FileDriver
 
             Guid,
         }
-
-        public static Type MapToType(BestType bestType) => bestType switch
-        {
-            BestType.String => typeof(string),
-            BestType.BigInt => typeof(BigInteger),
-            BestType.NullableBigInt => typeof(BigInteger?),
-            BestType.Bool => typeof(bool),
-            BestType.NullableBool => typeof(bool?),
-            BestType.Char => typeof(char),
-            BestType.NullableChar => typeof(char?),
-            BestType.DateTime => typeof(DateTime),
-            BestType.NullableDateTime => typeof(DateTime?),
-            BestType.DateTimeOffset => typeof(DateTimeOffset),
-            BestType.NullableDateTimeOffset => typeof(DateTimeOffset?),
-            BestType.Decimal => typeof(decimal),
-            BestType.NullableDecimal => typeof(decimal?),
-            BestType.Double => typeof(double),
-            BestType.NullableDouble => typeof(double?),
-            BestType.Guid => typeof(Guid),
-            BestType.NullableGuid => typeof(Guid?),
-            BestType.Int64 => typeof(long),
-            BestType.NullableInt64 => typeof(long?),
-            BestType.Int32 => typeof(int),
-            BestType.NullableInt32 => typeof(int?),
-            BestType.Int16 => typeof(short),
-            BestType.NullableInt16 => typeof(short?),
-            BestType.Byte => typeof(byte),
-            BestType.NullableByte => typeof(byte?),
-            BestType.Timespan => typeof(TimeSpan),
-            BestType.NullableTimespan => typeof(TimeSpan?),
-            _ => throw new NotImplementedException("missing handler for " + bestType),
-        };
 
         public static string GetTypeRef(BestType bestType) => bestType switch
         {

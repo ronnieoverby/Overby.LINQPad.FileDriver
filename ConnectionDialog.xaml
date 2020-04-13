@@ -9,10 +9,17 @@
 	
 	<StackPanel Margin="12">
 
-        <Label Padding="0,0,0,2">Data directory path:</Label>
+        <TextBlock TextWrapping="Wrap">
+            <Run>This driver allows querying local data files.</Run>
+            <LineBreak/>
+            <Run FontWeight="Bold">*.csv only</Run><Run>, for now. 
+                More file types will be supported later!</Run>
+        </TextBlock>
+        
+        <Label Padding="0,15,0,2">Data directory path:</Label>
         <TextBox Name="txtDataDirectoryPath" Padding="2" Text="{Binding DataDirectoryPath}" />
 
-        <Label Padding="0,0,0,2">Friendly name for this connection (optional):</Label>
+        <Label Padding="0,15,0,2">Friendly name for this connection (optional):</Label>
         <TextBox Name="txtFriendlyName" Padding="2" Text="{Binding ConnectionInfo.DisplayName}" />
 
         <DockPanel LastChildFill="False" Margin="0,15,0,0">

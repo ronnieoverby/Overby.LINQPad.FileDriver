@@ -7,7 +7,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using static LINQPad.Extensibility.DataContext.ExplorerIcon;
+using static LINQPad.Extensibility.DataContext.ExplorerItemKind;
+using static Overby.LINQPad.FileDriver.ValueTyper;
 
 namespace Overby.LINQPad.FileDriver
 {
@@ -44,16 +48,15 @@ namespace Overby.LINQPad.FileDriver
             var files = root.EnumerateFiles("*.csv")
                     .Select(file => (file, csid: ToIdentifier(file.Name)));
 
-            BuildAssembly(files, assemblyToBuild, ref nameSpace, ref typeName);
+            BuildAssembly(files, assemblyToBuild, ref nameSpace, ref typeName, out var explorerItems);
 
-            return files
-                .Select(f => new ExplorerItem(f.csid, ExplorerItemKind.QueryableObject, ExplorerIcon.Table))
-                .ToList();
+            return explorerItems.OrderBy(x => x.Text).ToList();
         }
 
-        private void BuildAssembly(IEnumerable<(FileInfo file, string csid)> files, AssemblyName assemblyToBuild, ref string nameSpace, ref string typeName)
+        private void BuildAssembly(IEnumerable<(FileInfo file, string csid)> files, AssemblyName assemblyToBuild, ref string nameSpace, ref string typeName, out List<ExplorerItem> explorerItems)
         {
-            var source = GenerateCode(files, nameSpace, typeName);
+            explorerItems = new List<ExplorerItem>();
+            var source = GenerateCode(files, nameSpace, typeName,explorerItems);
             Compile(source, assemblyToBuild.CodeBase);
         }
 
@@ -62,45 +65,85 @@ namespace Overby.LINQPad.FileDriver
             if (string.IsNullOrWhiteSpace(s))
                 throw new ArgumentException("string was empty or whitespace", nameof(s));
 
-            s = string.Concat(s.Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c)));
-            s = Regex.Replace(s, @"\s+", "_");
+            s = Regex.Replace(s, @"[^a-zA-Z0-9_]+", "_");
 
             if (char.IsDigit(s[0]))
-                s = "_" + s;
+                return "_" + s;
 
             return s;
         }
 
-        string GenerateCode(IEnumerable<(FileInfo file, string csid)> files, string nameSpace, string typeName)
-        {
-            var fileGens = files.Select(GenerateCodeForFile).ToArray();
+        const string _cacheFolder = ".5f969db29db8fe4dbd4738bf85c80219";
 
-            (string types, string property) GenerateCodeForFile((FileInfo file, string csid) t)
+        Dictionary<string,BestType> GetBestTypes(FileInfo file, DirectoryInfo cacheDir)
+        {
+            var cacheFile = new FileInfo(Path.Combine(cacheDir.FullName, "besttypes.csv"));
+
+            if (cacheFile.Exists)
+            {
+                using var textReader = new StreamReader(cacheFile.FullName);
+                return textReader.ReadCsvWithHeader().ToDictionary(
+                    x => x["key"],
+                    x => (BestType)Enum.Parse(typeof(BestType), x["type"]));
+            }
+
+            using var reader = new StreamReader(file.FullName);
+            var bestTypes = DetermineBestTypes(
+                reader.ReadCsvWithHeader().Select(rec => rec.Keys.Select(k => (k, rec[k]))));
+
+            // save code for next time
+            using var writer = new StreamWriter(cacheFile.FullName);
+            var csv = new CsvWriter(writer);
+            csv.AddRecord("key", "type");
+            foreach (var pair in bestTypes)
+                csv.AddRecord(pair.Key, pair.Value);
+
+            return bestTypes;
+        }
+
+        string GenerateCode(IEnumerable<(FileInfo file, string fileClassName)> files, string nameSpace, string typeName, List<ExplorerItem> explorerItems)
+        {
+            var fileGens = files.AsParallel().Select(GenerateCodeForFile).ToArray();
+            explorerItems.AddRange(fileGens.Select(x => x.explorerItem));
+
+            (string types, string property, ExplorerItem explorerItem) GenerateCodeForFile((FileInfo file, string fileClassName) t)
             {
                 var (file, fileClassName) = t;
 
-                using var reader = new StreamReader(file.FullName);
-                var bestTypes = ValueTyper.DetermineBestTypes(
-                    reader.ReadCsvWithHeader().Select(rec => rec.Keys.Select(k => (k, rec[k]))));
+                var filehash = GetFileHash(file.FullName);
 
-                
+                var cacheDir = new DirectoryInfo(
+                    Path.Combine(file.DirectoryName, _cacheFolder, filehash));
 
+                if (!cacheDir.Exists) 
+                    cacheDir.Create();
 
+                var explorerFields = new List<ExplorerItem>();
+                var bestTypes = GetBestTypes(file, cacheDir);
                 var recordClass = GenerateRecordClass();
                 var fileProperty = GenerateFileProperty();
-                return (recordClass, fileProperty);
 
-                string GenerateFileProperty() 
+                var explorerItem = new ExplorerItem(fileClassName, ExplorerItemKind.QueryableObject,
+                        ExplorerIcon.Table)
+                {
+                    IsEnumerable = true,
+                    ToolTipText = file.FullName,
+                    Children = explorerFields
+                };
+
+                return (recordClass, fileProperty, explorerItem);
+
+                string GenerateFileProperty()
                 {
                     return $@"
-        public IEnumerable<{fileClassName}> {fileClassName} 
+        public IEnumerable<{nameSpace}.RecordTypes.{fileClassName}> {fileClassName} 
         {{
             get
             {{
-                using var streamReader = new StreamReader({VerbatimString(file.FullName)});
+                using var streamReader = new StreamReader({nameSpace}.FilePaths.{fileClassName});
                 var csvRecords = Overby.Extensions.Text.CsvParsingExtensions.ReadCsvWithHeader(streamReader);
                 foreach(var record in csvRecords)
-                    yield return {nameSpace}.{fileClassName}.Create(record);
+                    yield return {nameSpace}.RecordTypes.{fileClassName}.Create(record);
             }}
         }}";
                 }
@@ -108,36 +151,50 @@ namespace Overby.LINQPad.FileDriver
                 string GenerateRecordClass()
                 {
                     var recordProperties =
-                        from bt in bestTypes
-                        let propName = ToIdentifier(bt.Key)
-                        let csPropType = ValueTyper.GetTypeRef(bt.Value)
-                        let propDef = $@"
+                        (from bt in bestTypes
+                         let propName = ToIdentifier(bt.Key)
+                         let csPropType = GetTypeRef(bt.Value)
+                         let propDef = $@"
         public {csPropType} {propName} {{ get; set; }}"
-                        let rawValueExpression = $"csvRecord[{VerbatimString(bt.Key)}]"
-                        let parser = ValueTyper.GetParserCode(bt.Value, rawValueExpression)
+                         let rawValueExpression = $"csvRecord[{VerbatimString(bt.Key)}]"
+                         let parser = GetParserCode(bt.Value, rawValueExpression)
 
-                        let propAssignment = $@"
-            {propName} = {parser}"
-                        select (propDef, propAssignment);
+                         let propAssignment = $@"
+                {propName} = {parser}"
+
+                         select (propDef, propAssignment, propName, csPropType)).ToArray();
+
+                    explorerFields.AddRange(
+                        from rp in recordProperties
+                        select new ExplorerItem(rp.propName, Property, Column)
+                        {
+                            // show the type when hovering
+                            ToolTipText = rp.csPropType
+                        });
 
                     return $@"
     public class {fileClassName}
     {{
+        // record properties
         {string.Join(NL, recordProperties.Select(t => t.propDef))}
+
+        // factory method
         public static {fileClassName} Create(Overby.Extensions.Text.CsvRecord csvRecord)
         {{
-            return new {nameSpace}.{fileClassName}
+            return new {nameSpace}.RecordTypes.{fileClassName}
             {{
                 {string.Join("," + NL, recordProperties.Select(t => t.propAssignment))}
             }};
-            
         }}
     }}";
                 }
             }
 
-            var properties = string.Join(Environment.NewLine, fileGens.Select(x => x.property));
-            var types = string.Join(Environment.NewLine, fileGens.Select(x => x.types));
+            var properties = string.Join(NL, fileGens.Select(x => x.property));
+            var types = string.Join(NL, fileGens.Select(x => x.types));
+
+            var filePaths = string.Join(NL, files.Select(f =>
+                $"public static string {f.fileClassName} => {VerbatimString(f.file.FullName)};"));
 
             string source = $@"using System;
 using System.Collections.Generic;
@@ -153,10 +210,28 @@ namespace {nameSpace}
         {properties}		
 	}}
 
+    public static class FilePaths
+    {{
+        {filePaths}
+    }}
+}}
+
+namespace {nameSpace}.RecordTypes
+{{
     {types}
-}}";
+}}
+
+";
 
             return source;
+        }
+
+        private string GetFileHash(string fullName)
+        {
+            using var stream = File.OpenRead(fullName);
+            using var md5 = MD5.Create();
+            var hash = md5.ComputeHash(stream);
+            return string.Concat(hash.Select(b => b.ToString("x2")));
         }
 
         static void Compile(string cSharpSourceCode, string outputFile)
