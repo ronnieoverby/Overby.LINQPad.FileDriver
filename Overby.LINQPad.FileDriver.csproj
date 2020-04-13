@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 	
 	<PropertyGroup>
-    <TargetFrameworks>netcoreapp3.0</TargetFrameworks>
-    <!--<TargetFrameworks>netcoreapp3.0;net46</TargetFrameworks>-->
+    <!--<TargetFrameworks>netcoreapp3.0</TargetFrameworks>-->
+    <TargetFrameworks>netcoreapp3.0;net46</TargetFrameworks>
 		<UseWpf>true</UseWpf>
 		<AssemblyName>Overby.LINQPad.FileDriver</AssemblyName>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<PackageTags>linqpad-driver</PackageTags>
+		<PackageTags>linqpaddriver</PackageTags>
 		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
 	</PropertyGroup>
 
@@ -16,6 +16,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="LINQPad.Reference" Version="1.*" />
+		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net46'">
@@ -39,13 +40,19 @@
 		<Folder Include="linqpad-samples\\" />
 	</ItemGroup>
 
-	<ItemGroup>
-    <Reference Include="Overby.Extensions.Text">
-      <HintPath>..\Overby.Extensions.CSV\Overby.Extensions.CSV\bin\Release\netstandard2.1\Overby.Extensions.Text.dll</HintPath>
-    </Reference>
-	</ItemGroup>	
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
+	  <Reference Include="Overby.Extensions.Text">
+	    <HintPath>..\Overby.Extensions.CSV\Overby.Extensions.CSV\bin\Release\netstandard1.3\Overby.Extensions.Text.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
 
-	<Target Name="PostBuild1" AfterTargets="PostBuildEvent" Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
+    <Reference Include="Overby.Extensions.Text">
+      <HintPath>..\Overby.Extensions.CSV\Overby.Extensions.CSV\bin\Release\net46\Overby.Extensions.Text.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="PostBuild1" AfterTargets="PostBuildEvent" Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
 		<Exec Command="xcopy /i/y/s &quot;$(TargetDir)*.*&quot; &quot;%25LocalAppData%25\\LINQPad\\Drivers\\DataContext\\NetCore\\$(TargetName)&quot;" />
 	</Target>
 

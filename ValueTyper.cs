@@ -139,7 +139,7 @@ namespace Overby.LINQPad.FileDriver
             // determine best types
 
             var parsedTypesCopy = parsedTypes
-                .ToDictionary(p => p.Key, p => p.Value.ToHashSet());
+                .ToDictionary(p => p.Key, p => new HashSet<ParsedType>(p.Value));
 
 
             var finalTypes = parsedTypes
@@ -223,7 +223,10 @@ namespace Overby.LINQPad.FileDriver
             bool WidestTypeMapAll(out BestType best, ParsedType mapAllTo, params ParsedType[] possibles)
             {
                 var actuals = new ParsedType[possibles.Length];
-                Array.Fill(actuals, mapAllTo);
+
+                for (int i = 0; i < actuals.Length; i++)
+                    actuals[i] = mapAllTo;
+                
                 return WidestTypeMapped(out best, possibles, actuals);
             }
 

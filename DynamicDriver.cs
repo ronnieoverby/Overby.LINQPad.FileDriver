@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using System.Xml;
 using static LINQPad.Extensibility.DataContext.ExplorerIcon;
 using static LINQPad.Extensibility.DataContext.ExplorerItemKind;
 using static Overby.LINQPad.FileDriver.ValueTyper;
@@ -140,10 +141,12 @@ namespace Overby.LINQPad.FileDriver
         {{
             get
             {{
-                using var streamReader = new StreamReader({nameSpace}.FilePaths.{fileClassName});
-                var csvRecords = Overby.Extensions.Text.CsvParsingExtensions.ReadCsvWithHeader(streamReader);
-                foreach(var record in csvRecords)
-                    yield return {nameSpace}.RecordTypes.{fileClassName}.Create(record);
+                using(var streamReader = new StreamReader({nameSpace}.FilePaths.{fileClassName}))
+                {{
+                    var csvRecords = Overby.Extensions.Text.CsvParsingExtensions.ReadCsvWithHeader(streamReader);
+                    foreach(var record in csvRecords)
+                        yield return {nameSpace}.RecordTypes.{fileClassName}.Create(record);
+                }}
             }}
         }}";
                 }
@@ -245,13 +248,17 @@ namespace {nameSpace}.RecordTypes
 			// .NET Framework - here's how to get the basic Framework assemblies:
 			new[]
 			{
-				typeof (int).Assembly.Location,            // mscorlib
+                typeof (int).Assembly.Location,            // mscorlib
 				typeof (Uri).Assembly.Location,            // System
 				typeof (XmlConvert).Assembly.Location,     // System.Xml
 				typeof (Enumerable).Assembly.Location,     // System.Core
 				typeof (DataSet).Assembly.Location         // System.Data
 			};
 #endif
+            
+
+            
+
 
             assembliesToReference = assembliesToReference.Concat(new[] {
                 typeof(CsvRecord).Assembly.Location,
