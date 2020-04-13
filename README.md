@@ -46,6 +46,8 @@ The dialog connection will be displayed. Supply a folder and a name for the conn
    - The name was chosen to avoid conflicts.
  - "I found a bug!"
    - Good. [Let me know about it.](https://github.com/ronnieoverby/Overby.LINQPad.FileDriver/issues)
+ - "I have an idea!"
+   - Good. [Let me know about it.](https://github.com/ronnieoverby/Overby.LINQPad.FileDriver/issues)
 
 ## Todo
 
