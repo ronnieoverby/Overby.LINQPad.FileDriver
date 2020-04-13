@@ -25,6 +25,8 @@ namespace Overby.LINQPad.FileDriver
                 return false;
             }
 
+            s = s.Trim();
+
             foreach (var t in trueStrings ?? new[] { bool.TrueString })
             {
                 if (t.Equals(s, StringComparison.OrdinalIgnoreCase))
