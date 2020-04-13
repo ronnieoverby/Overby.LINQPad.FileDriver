@@ -57,7 +57,7 @@ namespace Overby.LINQPad.FileDriver
         private void BuildAssembly(IEnumerable<(FileInfo file, string csid)> files, AssemblyName assemblyToBuild, ref string nameSpace, ref string typeName, out List<ExplorerItem> explorerItems)
         {
             explorerItems = new List<ExplorerItem>();
-            var source = GenerateCode(files, nameSpace, typeName,explorerItems);
+            var source = GenerateCode(files, nameSpace, typeName, explorerItems);
             Compile(source, assemblyToBuild.CodeBase);
         }
 
@@ -76,7 +76,7 @@ namespace Overby.LINQPad.FileDriver
 
         const string _cacheFolder = ".5f969db29db8fe4dbd4738bf85c80219";
 
-        Dictionary<string,BestType> GetBestTypes(FileInfo file, DirectoryInfo cacheDir)
+        Dictionary<string, BestType> GetBestTypes(FileInfo file, DirectoryInfo cacheDir)
         {
             var cacheFile = new FileInfo(Path.Combine(cacheDir.FullName, "besttypes.csv"));
 
@@ -116,7 +116,7 @@ namespace Overby.LINQPad.FileDriver
                 var cacheDir = new DirectoryInfo(
                     Path.Combine(file.DirectoryName, _cacheFolder, filehash));
 
-                if (!cacheDir.Exists) 
+                if (!cacheDir.Exists)
                     cacheDir.Create();
 
                 var explorerFields = new List<ExplorerItem>();
@@ -124,12 +124,12 @@ namespace Overby.LINQPad.FileDriver
                 var recordClass = GenerateRecordClass();
                 var fileProperty = GenerateFileProperty();
 
-                var explorerItem = new ExplorerItem(fileClassName, ExplorerItemKind.QueryableObject,
-                        ExplorerIcon.Table)
+                var explorerItem = new ExplorerItem(file.Name, QueryableObject, Table)
                 {
                     IsEnumerable = true,
                     ToolTipText = file.FullName,
-                    Children = explorerFields
+                    Children = explorerFields,
+                    DragText = fileClassName
                 };
 
                 return (recordClass, fileProperty, explorerItem);
@@ -165,14 +165,16 @@ namespace Overby.LINQPad.FileDriver
                          let propAssignment = $@"
                 {propName} = {parser}"
 
-                         select (propDef, propAssignment, propName, csPropType)).ToArray();
+                         select (propDef, propAssignment, propName, csPropType, rawFieldKey: bt.Key)).ToArray();
 
+                    // add the child columns/fields to the explorer tree
                     explorerFields.AddRange(
                         from rp in recordProperties
-                        select new ExplorerItem(rp.propName, Property, Column)
+                        select new ExplorerItem(rp.rawFieldKey, Property, Column)
                         {
                             // show the type when hovering
-                            ToolTipText = rp.csPropType
+                            ToolTipText = rp.csPropType,
+                            DragText = rp.propName
                         });
 
                     return $@"
@@ -255,10 +257,6 @@ namespace {nameSpace}.RecordTypes
 				typeof (DataSet).Assembly.Location         // System.Data
 			};
 #endif
-            
-
-            
-
 
             assembliesToReference = assembliesToReference.Concat(new[] {
                 typeof(CsvRecord).Assembly.Location,
