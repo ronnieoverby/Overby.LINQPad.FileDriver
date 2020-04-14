@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -10,6 +11,7 @@ namespace Overby.LINQPad.FileDriver
         public static Dictionary<TKey, BestType> DetermineBestTypes<TKey>(IEnumerable<IEnumerable<(TKey key, string value)>> sequence)
         {
             var parsedTypes = new Dictionary<TKey, HashSet<ParsedType>>();
+            var parserFlags = new Dictionary<TKey, bool[]>();
 
             foreach (var record in sequence)
             {
@@ -17,6 +19,25 @@ namespace Overby.LINQPad.FileDriver
                 {
                     if (!parsedTypes.TryGetValue(key, out var set))
                         set = parsedTypes[key] = new HashSet<ParsedType>();
+
+                    if (!parserFlags.TryGetValue(key, out var flags))
+                    {
+                        flags = parserFlags[key] =
+                            new bool[Enum.GetValues(typeof(ParsedType)).Cast<ParsedType>().Count()];
+
+                        for (int i = 0; i < flags.Length; i++)
+                            flags[i] = true;
+                    }
+
+                    bool CheckFlag(ParsedType pt) => flags[(int)pt];
+                    void KillFlags(params ParsedType[] pts)
+                    {
+                        foreach (var pt in pts)
+                        {
+                            var i = (int)pt;
+                            flags[i] = !flags[i];
+                        }
+                    }
 
                     if (set.Contains(ParsedType.String))
                         // no need
@@ -26,100 +47,109 @@ namespace Overby.LINQPad.FileDriver
 
                     // for similar types (numerics/dates/bools) parse from least wide to most wide types
 
-                    if (string.IsNullOrWhiteSpace(value)) // todo consider short circuiting for large strings; what size?
+                    if (string.IsNullOrWhiteSpace(value))  // always check
                     {
                         set.Add(ParsedType.EmptyString);
                     }
 
                     // bool -> numeric -> char -> string
 
-                    else if ("1" == value)
+                    else if (CheckFlag(ParsedType.One) && "1" == value)
                     {
                         set.Add(ParsedType.One);
                     }
-                    else if ("0" == value)
+                    else if (CheckFlag(ParsedType.Zero) && "0" == value)
                     {
                         set.Add(ParsedType.Zero);
                     }
 
                     // bool -> char -> string
 
-                    else if (ieq("t", "y"))
+                    else if (CheckFlag(ParsedType.TrueString1) && ieq("t", "y"))
                     {
                         set.Add(ParsedType.TrueString1);
                     }
-                    else if (ieq("f", "n"))
+                    else if (CheckFlag(ParsedType.FalseString1) && ieq("f", "n"))
                     {
                         set.Add(ParsedType.FalseString1);
                     }
 
                     // bool -> string
 
-                    else if (ieq("yes", "on", "true"))
+                    else if (/*CheckFlag(ParsedType.TrueString) &&*/ ieq("yes", "on", "true"))
                     {
                         set.Add(ParsedType.TrueString);
                     }
-                    else if (ieq("no", "off", "false"))
+                    else if (/*CheckFlag(ParsedType.FalseString) &&*/ ieq("no", "off", "false"))
                     {
                         set.Add(ParsedType.FalseString);
                     }
 
                     // numerics
 
-                    else if (byte.TryParse(value, out var _))
+                    else if (CheckFlag(ParsedType.Byte) && byte.TryParse(value, out var _))
                     {
-                        set.Add(ParsedType.Byte);
+                        if (set.Add(ParsedType.Byte))
+                            KillFlags(ParsedType.One, ParsedType.Zero);
                     }
-                    else if (short.TryParse(value, out var _))
+                    else if (CheckFlag(ParsedType.Int16) && short.TryParse(value, out var _))
                     {
-                        set.Add(ParsedType.Int16);
+                        if (set.Add(ParsedType.Int16))
+                            KillFlags(ParsedType.Byte, ParsedType.One, ParsedType.Zero);
                     }
-                    else if (int.TryParse(value, out var _))
+                    else if (CheckFlag(ParsedType.Int32) && int.TryParse(value, out var _))
                     {
-                        set.Add(ParsedType.Int32);
+                        if (set.Add(ParsedType.Int32))
+                            KillFlags(ParsedType.Int16, ParsedType.Byte, ParsedType.One, ParsedType.Zero);
                     }
-                    else if (long.TryParse(value, out var _))
+                    else if (CheckFlag(ParsedType.Int64) && long.TryParse(value, out var _))
                     {
-                        set.Add(ParsedType.Int64);
+                        if (set.Add(ParsedType.Int64))
+                            KillFlags(ParsedType.Int32, ParsedType.Int16, ParsedType.Byte, ParsedType.One, ParsedType.Zero);
                     }
-                    else if (BigInteger.TryParse(value, out var _))
+                    else if (CheckFlag(ParsedType.BigInt) && BigInteger.TryParse(value, out var _))
                     {
-                        set.Add(ParsedType.BigInt);
+                        if (set.Add(ParsedType.BigInt))
+                            KillFlags(ParsedType.Int64, ParsedType.Int32, ParsedType.Int16, ParsedType.Byte, ParsedType.One, ParsedType.Zero);
                     }
-                    else if (decimal.TryParse(value, out var _))
+                    else if (CheckFlag(ParsedType.Decimal) && decimal.TryParse(value, out var _))
                     {
-                        set.Add(ParsedType.Decimal);
+                        if (set.Add(ParsedType.Decimal))
+                            KillFlags(ParsedType.BigInt, ParsedType.Int64, ParsedType.Int32, ParsedType.Int16, ParsedType.Byte, ParsedType.One, ParsedType.Zero);
                     }
-                    else if (double.TryParse(value, out var _))
+                    else if (/*CheckFlag(ParsedType.Double) &&*/ double.TryParse(value, out var _))
                     {
-                        set.Add(ParsedType.Double);
+                        if (set.Add(ParsedType.Double))
+                            KillFlags(ParsedType.Decimal, ParsedType.BigInt, ParsedType.Int64, ParsedType.Int32, ParsedType.Int16, ParsedType.Byte, ParsedType.One, ParsedType.Zero);
                     }
 
                     // char
 
-                    else if (value.Length == 1)
+                    else if (/*CheckFlag(ParsedType.Char) &&*/ value.Length == 1)
                     {
-                        set.Add(ParsedType.Char);
+                        if (set.Add(ParsedType.Char))
+                            KillFlags(ParsedType.One, ParsedType.Zero, ParsedType.TrueString1, ParsedType.FalseString1);
                     }
 
                     // dates
 
-                    else if (DateTime.TryParse(value, out var _))
+                    else if (CheckFlag(ParsedType.DateTime) && DateTime.TryParse(value, out var _))
                     {
                         set.Add(ParsedType.DateTime);
                     }
-                    else if (DateTimeOffset.TryParse(value, out var _))
+                    else if (/*CheckFlag(ParsedType.DateTimeOffset) &&*/ DateTimeOffset.TryParse(value, out var _))
                     {
-                        set.Add(ParsedType.DateTimeOffset);
+                        if (set.Add(ParsedType.DateTimeOffset))
+                            KillFlags(ParsedType.DateTime);
                     }
 
                     // other unambiguous, straight forward types
 
-                    else if (Guid.TryParse(value, out var _))
+                    else if (/*CheckFlag(ParsedType.Guid) &&*/ Guid.TryParse(value, out var _))
                     {
                         set.Add(ParsedType.Guid);
                     }
-                    else if (TimeSpan.TryParse(value, out var _))
+                    else if (/*CheckFlag(ParsedType.Timespan) &&*/ TimeSpan.TryParse(value, out var _))
                     {
                         set.Add(ParsedType.Timespan);
                     }
@@ -144,8 +174,6 @@ namespace Overby.LINQPad.FileDriver
 
             var finalTypes = parsedTypes
                 .ToDictionary(p => p.Key, p => DetermineBestType(p.Value));
-
-            //var review = finalTypes.Select(p => new { p.Key, best = finalTypes[p.Key], values = parsedTypesCopy[p.Key] }).Dump();
 
             return finalTypes;
         }
@@ -226,7 +254,7 @@ namespace Overby.LINQPad.FileDriver
 
                 for (int i = 0; i < actuals.Length; i++)
                     actuals[i] = mapAllTo;
-                
+
                 return WidestTypeMapped(out best, possibles, actuals);
             }
 
@@ -396,8 +424,8 @@ namespace Overby.LINQPad.FileDriver
             BestType.Timespan => $"System.TimeSpan.Parse({ rawValueExpression })",
             BestType.NullableTimespan => $"string.IsNullOrWhiteSpace({ rawValueExpression }) ? default(System.TimeSpan?) : System.TimeSpan.Parse({ rawValueExpression })",
             _ => throw new NotImplementedException("missing parser for " + bestType),
-        }; 
+        };
 
-    
+
     }
 }
