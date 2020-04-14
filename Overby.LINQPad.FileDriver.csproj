@@ -8,6 +8,14 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageTags>linqpaddriver</PackageTags>
 		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+		<Version>0.0.1-alpha2</Version>
+		<FileVersion>0.0.1.2</FileVersion>
+		<PackageReleaseNotes>Initial nuget release.</PackageReleaseNotes>
+		<Description>Query local data files in LINQPad!</Description>
+		<Copyright>2020 Ronnie Overby</Copyright>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/ronnieoverby/Overby.LINQPad.FileDriver</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/ronnieoverby/Overby.LINQPad.FileDriver</PackageProjectUrl>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
