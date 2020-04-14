@@ -10,13 +10,29 @@ Yes. Kind of like that.
 
 ## Installation
 
-The driver isn't yet available in the normal distribution channels for Linqpad 5/6, the driver registry and nuget, respectively. That will happen soon. For now, go to [this repo's releases page](https://github.com/ronnieoverby/Overby.LINQPad.FileDriver/releases) and download the appropriate release, `.lpx` for LINQPad 5 and `*.lpx6` for LINQPad 6.
+### LINQPad v6
+
+This driver can be installed via nuget. In LINQPad, click `Add Connection` and then `View more drivers...`.
+
+![LP6 Drivers](https://user-images.githubusercontent.com/101028/79165476-3039d000-7db1-11ea-8753-ea6501897f6c.png)
+
+Check `Include Prerelease` and  `Show all drivers`. Search for `Overby.LINQPad.FileDriver`. Click `Install`.
+
+![LP6 Drivers on nuget](https://user-images.githubusercontent.com/101028/79183707-37c49d80-7de0-11ea-8512-73b18df2a8ec.png)
+
+
+### LINQPad v5
+
+The driver isn't yet available in the normal distribution channels for Linqpad 5. That will happen soon. For now, go to [this repo's releases page](https://github.com/ronnieoverby/Overby.LINQPad.FileDriver/releases) and download the latest released `.lpx` file.
 
 In LINQPad, click `Add Connection` and then `View more drivers...`.
 
-![image](https://user-images.githubusercontent.com/101028/79165476-3039d000-7db1-11ea-8753-ea6501897f6c.png)
+![image](https://user-images.githubusercontent.com/101028/79184097-38a9ff00-7de1-11ea-86a7-b1af390508bc.png)
 
-In version 5, click `Browse...` and select the `.lpx` file. For version 6, click `Install driver from .LPX6 file...` and select the `.lpx6` file.
+Click `Browse...` and select the `.lpx` file.
+
+![image](https://user-images.githubusercontent.com/101028/79184223-8888c600-7de1-11ea-8dbf-b1a85ce7a25c.png)
+
 
 ## Configuration
 
