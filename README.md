@@ -56,7 +56,6 @@ The dialog connection will be displayed. Supply a folder and a name for the conn
 ## Todo
 
 - Cleanup messy code (I built this thing quickly)
-- Nuget package for LP6
 - CI/CD
 - Enum support for generated types
 - Support more file types
