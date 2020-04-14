@@ -89,3 +89,5 @@ The dialog connection will be displayed. Supply a folder and a name for the conn
 - Support CSV files without a header line
 - Utilities for easily writing files to the folder
 - Auto populate when a query writes to the folder
+- Remove all use of params (variadic function parameters) in hot paths (during parsing/type detection)
+  - There are no optimization for these. An array is allocated EVERY SINGLE TIME
