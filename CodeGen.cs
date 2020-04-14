@@ -2,6 +2,7 @@
 using Overby.Extensions.Text;
 using Overby.LINQPad.FileDriver.TypeInference;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -81,11 +82,18 @@ namespace Overby.LINQPad.FileDriver
             _ => throw new System.NotImplementedException("missing parser for " + bestType),
         };
 
-        internal static string GenerateCode(IEnumerable<(FileInfo file, string fileClassName)> files, string nameSpace, string typeName, List<ExplorerItem> explorerItems)
+        internal static string GenerateCode(
+            IEnumerable<(FileInfo file, string fileClassName)> files, 
+            string nameSpace,
+            string typeName,
+            List<ExplorerItem> explorerItems,
+            Metrics metrics)
         {
-            var fileGens = files.AsParallel().Select(t => GenerateCodeForFile(nameSpace, t.file, t.fileClassName)).ToArray();
-            explorerItems.AddRange(fileGens.Select(x => x.explorerItem));
+            var stopwatch = Stopwatch.StartNew();
+            var fileGens = files.AsParallel().Select(t => 
+                GenerateCodeForFile(nameSpace, t.file, t.fileClassName)).ToArray();
 
+            explorerItems.AddRange(fileGens.Select(x => x.explorerItem));
             var properties = fileGens.Select(x => x.property).NewLineJoin();
             var types = fileGens.Select(x => x.types).NewLineJoin();
 
@@ -119,10 +127,8 @@ namespace {nameSpace}.RecordTypes
 }}
 
 ";
-
+            metrics.GenerateCodeDuration = stopwatch.Elapsed;
             return source;
-
-    
         }
 
         private static (string types, string property, ExplorerItem explorerItem) GenerateCodeForFile(string nameSpace, FileInfo file, string fileClassName)

@@ -8,6 +8,11 @@ namespace Overby.LINQPad.FileDriver.TypeInference
 {
     internal static partial class TypeInferrer
     {
+        private static readonly string[] _trueStrings = new[] { "yes", "on", "true" };
+        private static readonly string[] _falseStrings = new[] { "no", "off", "false" };
+        private static readonly string[] _trueStrings1 = new[] { "t", "y" };
+        private static readonly string[] _falseStrings1 = new[] { "f", "n" };
+
         public static Dictionary<TKey, BestType> DetermineBestTypes<TKey>(IEnumerable<IEnumerable<(TKey key, string value)>> sequence)
         {
             var parsedValues = new Dictionary<TKey, HashSet<ParsedValue>>();
@@ -45,22 +50,22 @@ namespace Overby.LINQPad.FileDriver.TypeInference
 
                     // bool -> char -> string
 
-                    else if (ieq("t", "y"))
+                    else if (ieq(_trueStrings1))
                     {
                         set.Add(TrueString1);
                     }
-                    else if (ieq("f", "n"))
+                    else if (ieq(_falseStrings1))
                     {
                         set.Add(FalseString1);
                     }
 
                     // bool -> string
 
-                    else if (ieq("yes", "on", "true"))
+                    else if (ieq(_trueStrings))
                     {
                         set.Add(TrueString);
                     }
-                    else if (ieq("no", "off", "false"))
+                    else if (ieq(_falseStrings))
                     {
                         set.Add(FalseString);
                     }
@@ -132,7 +137,7 @@ namespace Overby.LINQPad.FileDriver.TypeInference
                         set.Add(String);
                     }
 
-                    bool ieq(params string[] xs) => // equals ignore case
+                    bool ieq(string[] xs) => // equals ignore case
                        xs.Any(x => value.Equals(x, OrdinalIgnoreCase));
                 }
             }
@@ -266,8 +271,6 @@ namespace Overby.LINQPad.FileDriver.TypeInference
             };
 
         static System.Exception NoBestType(ParsedValue pt) => 
-            new System.Exception($"`{pt}` is not mapped to a best type!");
-
-      
+            new System.Exception($"`{pt}` is not mapped to a best type!");      
     }
 }

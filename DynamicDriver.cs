@@ -38,22 +38,29 @@ namespace Overby.LINQPad.FileDriver
         public override List<ExplorerItem> GetSchemaAndBuildAssembly(
             IConnectionInfo cxInfo, AssemblyName assemblyToBuild, ref string nameSpace, ref string typeName)
         {
+            var metrics = new Metrics();
+            var stopwatch = Stopwatch.StartNew();
+
             var cxProps = new ConnectionProperties(cxInfo);
             var root = new DirectoryInfo(cxProps.DataDirectoryPath);
 
             var files = root.EnumerateFiles("*.csv")
                     .Select(file => (file, csid: file.Name.ToIdentifier()));
 
-            BuildAssembly(files, assemblyToBuild, ref nameSpace, ref typeName, out var explorerItems);
-
-            return explorerItems.OrderBy(x => x.Text).ToList();
+            BuildAssembly(files, assemblyToBuild, ref nameSpace, ref typeName, out var explorerItems,metrics);
+            explorerItems = explorerItems.OrderBy(x => x.Text).ToList();
+            
+            metrics.GetSchemaAndBuildAssemblyDuration = stopwatch.Elapsed;
+            return explorerItems;
         }
 
-        private void BuildAssembly(IEnumerable<(FileInfo file, string csid)> files, AssemblyName assemblyToBuild, ref string nameSpace, ref string typeName, out List<ExplorerItem> explorerItems)
+        private void BuildAssembly(IEnumerable<(FileInfo file, string csid)> files, AssemblyName assemblyToBuild, ref string nameSpace, ref string typeName, out List<ExplorerItem> explorerItems, Metrics metrics)
         {
+            var stopwatch = Stopwatch.StartNew();
             explorerItems = new List<ExplorerItem>();
-            var source = GenerateCode(files, nameSpace, typeName, explorerItems);
+            var source = GenerateCode(files, nameSpace, typeName, explorerItems, metrics);
             Compile(source, assemblyToBuild.CodeBase);
+            metrics.BuildAssemblyDuration = stopwatch.Elapsed;
         }        
 
         static void Compile(string cSharpSourceCode, string outputFile)
