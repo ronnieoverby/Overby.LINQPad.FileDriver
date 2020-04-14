@@ -12,8 +12,8 @@ namespace Overby.LINQPad.FileDriver
             throw new FormatException($@"can't parse bool: {new
             {
                 rawValue,
-                trueStrings = string.Join(",", trueStrings),
-                falseStrings = string.Join(",", falseStrings)
+                trueStrings = trueStrings.StringJoin(", "),
+                falseStrings = falseStrings.StringJoin(", "),
             }}");
         }
 

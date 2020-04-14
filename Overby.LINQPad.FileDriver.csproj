@@ -45,7 +45,10 @@
 
 	<ItemGroup>
 		<Content Include="linqpad-samples\\*.*" />
+		<None Remove="create lpx.linq" />
 		<None Remove="Directory.Build.props" />
+		<None Remove="Overby.LINQPad.FileDriver.lpx" />
+		<None Remove="Overby.LINQPad.FileDriver.lpx6" />
 		<None Remove="README.md" />
 		<Folder Include="linqpad-samples\\" />
 	</ItemGroup>

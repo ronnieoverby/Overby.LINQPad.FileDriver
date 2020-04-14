@@ -1,0 +1,33 @@
+﻿namespace Overby.LINQPad.FileDriver.TypeInference
+{
+    internal enum BestType
+    {
+        String,
+        BigInt,
+        NullableBigInt,
+        Bool,
+        NullableBool,
+        Char,
+        NullableChar,
+        DateTime,
+        NullableDateTime,
+        DateTimeOffset,
+        NullableDateTimeOffset,
+        Decimal,
+        NullableDecimal,
+        Double,
+        NullableDouble,
+        Guid,
+        NullableGuid,
+        Int64,
+        NullableInt64,
+        Int32,
+        NullableInt32,
+        Int16,
+        NullableInt16,
+        Byte,
+        NullableByte,
+        Timespan,
+        NullableTimespan,
+    }
+}
