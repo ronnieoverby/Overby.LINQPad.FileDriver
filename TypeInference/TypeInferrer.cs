@@ -203,7 +203,7 @@ namespace Overby.LINQPad.FileDriver.TypeInference
 
             bool WidestTypeMapped(out BestType best, ParsedValue[] possibles, ParsedValue[] actuals)
             {
-                // types are ordered widet -> narrow
+                // types are ordered wide -> narrow
                 // if set is subset of types, take first
 
                 if (IsSubset(possibles))
