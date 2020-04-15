@@ -10,8 +10,6 @@ Yes. Kind of like that.
 
 ## Installation
 
-##
-
  - [LINQPad v6](https://github.com/ronnieoverby/Overby.LINQPad.FileDriver/wiki/Installation-(LINQPad-v6))
  - [LINQPad v5](https://github.com/ronnieoverby/Overby.LINQPad.FileDriver/wiki/Installation-(LINQPad-v5))
 
