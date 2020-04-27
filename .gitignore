@@ -355,3 +355,5 @@ MigrationBackup/
 # End of https://www.gitignore.io/api/visualstudio
 /Overby.LINQPad.FileDriver.lpx
 /Overby.LINQPad.FileDriver.lpx6
+/src/Overby.LINQPad.FileDriver.lpx
+/src/Overby.LINQPad.FileDriver.lpx6

@@ -7,8 +7,8 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageTags>linqpaddriver</PackageTags>
 		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-		<Version>0.0.1-alpha3</Version>
-		<FileVersion>0.0.1.3</FileVersion>
+		<Version>0.0.1-alpha4</Version>
+		<FileVersion>0.0.1.4</FileVersion>
 		<PackageReleaseNotes>Initial nuget release.</PackageReleaseNotes>
 		<Description>Query local data files in LINQPad!</Description>
 		<Copyright>2020 Ronnie Overby</Copyright>
@@ -24,7 +24,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="LINQPad.Reference" Version="1.*" />
-		<PackageReference Include="Overby.Extensions.Text" Version="1.0.0-beta1" />
+		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+		<PackageReference Include="Overby.Extensions.Text" Version="1.0.0-beta2" />
 		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
 	</ItemGroup>
 

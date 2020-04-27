@@ -13,7 +13,7 @@ void CreateLPX()
 	var queryFolder = new FileInfo(Util.CurrentQueryPath).DirectoryName;
 
 	var net46Dir = new DirectoryInfo(
-		Path.Combine(queryFolder, "bin", "Release", "net46"));
+		Path.Combine(queryFolder,"Overby.LINQPad.FileDriver", "bin", "Release", "net46"));
 
 	var lpxFile = Path.Combine(queryFolder, "Overby.LINQPad.FileDriver.lpx");
 
@@ -39,11 +39,10 @@ void CreateLPX6()
 	var queryFolder = new FileInfo(Util.CurrentQueryPath).DirectoryName;
 
 	var net46Dir = new DirectoryInfo(
-		Path.Combine(queryFolder, "bin", "Release", "netcoreapp3.0"));
+		Path.Combine(queryFolder, "Overby.LINQPad.FileDriver", "bin", "Release", "netcoreapp3.0"));
 
 	var lpxFile = Path.Combine(queryFolder, "Overby.LINQPad.FileDriver.lpx6");
 
 	File.Delete(lpxFile);
 	ZipFile.CreateFromDirectory(net46Dir.FullName, lpxFile);
 }
-

@@ -1,6 +1,6 @@
 ﻿namespace Overby.LINQPad.FileDriver.TypeInference
 {
-    internal enum BestType
+    public enum BestType
     {
         String,
         BigInt,

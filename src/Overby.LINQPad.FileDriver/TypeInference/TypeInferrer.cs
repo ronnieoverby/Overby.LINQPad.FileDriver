@@ -6,15 +6,23 @@ using System.Numerics;
 
 namespace Overby.LINQPad.FileDriver.TypeInference
 {
-    internal static partial class TypeInferrer
+    public static class TypeInferrer
     {
-        private static readonly string[] _trueStrings = new[] { "yes", "on", "true" };
-        private static readonly string[] _falseStrings = new[] { "no", "off", "false" };
-        private static readonly string[] _trueStrings1 = new[] { "t", "y" };
-        private static readonly string[] _falseStrings1 = new[] { "f", "n" };
-
-        public static Dictionary<TKey, BestType> DetermineBestTypes<TKey>(IEnumerable<IEnumerable<(TKey key, string value)>> sequence)
+        public static Dictionary<TKey, BestType> DetermineBestTypes<TKey>(
+            IEnumerable<IEnumerable<(TKey key, string value)>> sequence,
+            string[] falseStrings,
+            string[] trueStrings,
+            System.Func<string, bool> isNullOrEmpty)
         {
+            trueStrings ??= new[] { bool.TrueString, "1" };
+            falseStrings ??= new[] { bool.FalseString, "0" };
+
+            var trueStrings1 = trueStrings.Where(s => s.Length == 1).ToArray();
+            var falseStrings1 = falseStrings.Where(s => s.Length == 1).ToArray();
+
+            trueStrings = trueStrings.Except(trueStrings1).ToArray();
+            falseStrings = falseStrings.Except(falseStrings1).ToArray();
+
             var parsedValues = new Dictionary<TKey, HashSet<ParsedValue>>();
 
             foreach (var record in sequence)
@@ -24,7 +32,7 @@ namespace Overby.LINQPad.FileDriver.TypeInference
                     if (!parsedValues.TryGetValue(key, out var set))
                         set = parsedValues[key] = new HashSet<ParsedValue>();
 
-                    if (set.Contains(String))
+                    if (set.Contains(ParsedValue.String))
                         // no need
                         continue;
 
@@ -32,7 +40,7 @@ namespace Overby.LINQPad.FileDriver.TypeInference
 
                     // for similar types (numerics/dates/bools) parse from least wide to most wide types
 
-                    if (string.IsNullOrWhiteSpace(value)) // todo consider short circuiting for large strings; what size?
+                    if (string.IsNullOrWhiteSpace(value) || isNullOrEmpty?.Invoke(value) == true) 
                     {
                         set.Add(EmptyString);
                     }
@@ -50,22 +58,22 @@ namespace Overby.LINQPad.FileDriver.TypeInference
 
                     // bool -> char -> string
 
-                    else if (ieq(_trueStrings1))
+                    else if (ieq(trueStrings1))
                     {
                         set.Add(TrueString1);
                     }
-                    else if (ieq(_falseStrings1))
+                    else if (ieq(falseStrings1))
                     {
                         set.Add(FalseString1);
                     }
 
                     // bool -> string
 
-                    else if (ieq(_trueStrings))
+                    else if (ieq(trueStrings))
                     {
                         set.Add(TrueString);
                     }
-                    else if (ieq(_falseStrings))
+                    else if (ieq(falseStrings))
                     {
                         set.Add(FalseString);
                     }
@@ -270,7 +278,7 @@ namespace Overby.LINQPad.FileDriver.TypeInference
 
             };
 
-        static System.Exception NoBestType(ParsedValue pt) => 
-            new System.Exception($"`{pt}` is not mapped to a best type!");      
+        static System.Exception NoBestType(ParsedValue pt) =>
+            new System.Exception($"`{pt}` is not mapped to a best type!");
     }
 }
