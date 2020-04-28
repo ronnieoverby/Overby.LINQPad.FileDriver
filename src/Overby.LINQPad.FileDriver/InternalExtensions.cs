@@ -169,5 +169,10 @@ namespace Overby.LINQPad.FileDriver
             return Memoizer.Instance.Get(keyData, () =>
                 file.EnumeratePath(root).Select(x => x.Name.ToIdentifier(x.GetParentDirectory().FullName)).Reverse().Skip(skip).StringJoin("."));
         }
+
+#if !NETCORE
+        public static HashSet<T> ToHashSet<T>(this IEnumerable<T> sequence, IEqualityComparer<T> comparer = null) =>
+            new HashSet<T>(sequence, comparer ?? EqualityComparer<T>.Default);
+#endif
     }
 }

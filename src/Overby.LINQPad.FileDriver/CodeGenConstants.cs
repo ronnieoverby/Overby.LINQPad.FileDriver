@@ -9,7 +9,10 @@
         public const string ReaderReadMethodName = "Read";
         public const string ReaderFilePathConstName = "FilePath";
         public const string SchemaNameSpace = "Schema";
-        public const string SchemaClassName = "Schema"; 
+        public const string SchemaClassName = "Schema";
+
+        public const string IsNullFunctionName = "IsNull";
+        public const string ParseBoolFunctionName = "ParseBool";
         #endregion
 
         public static string IEnumerable(string ofType) =>

@@ -1,4 +1,5 @@
 ﻿using Overby.LINQPad.FileDriver.TypeInference;
+using static Overby.LINQPad.FileDriver.CodeGenConstants;
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Concurrent;
@@ -49,40 +50,37 @@ namespace Overby.LINQPad.FileDriver
         public static string GetTypeRef(System.Type type) => Memoizer.Instance.Get(type,
             new CodeTypeReferenceExpression(type).GenCode);
 
-        const string _trueStrings = "new[] { bool.TrueString, \"t\", \"y\", \"yes\", \"1\", \"on\" }";
-        const string _falseStrings = "new[] { bool.FalseString, \"f\", \"n\", \"no\", \"0\", \"off\" }";
-
         public static string GetParserCode(BestType bestType, string rawValueExpression) => bestType switch
         {
             // todo dynamic true/false strings
 
-            String => rawValueExpression,
+            String => $"{IsNullFunctionName}({rawValueExpression}) ? default(string) : {rawValueExpression}",
             BigInt => $"System.Numerics.BigInteger.Parse({rawValueExpression})",
-            NullableBigInt => $@"string.IsNullOrWhiteSpace({rawValueExpression}) ? default(System.Numerics.BigInteger?) : System.Numerics.BigInteger.Parse({rawValueExpression})",
-            Bool => $"Overby.LINQPad.FileDriver.Parsers.ParseBool({rawValueExpression}, {_trueStrings}, {_falseStrings})",
-            NullableBool => $"string.IsNullOrWhiteSpace({rawValueExpression}) ? default(bool?) : Overby.LINQPad.FileDriver.Parsers.ParseBool({rawValueExpression}, {_trueStrings}, {_falseStrings})",
+            NullableBigInt => $@"{IsNullFunctionName}({rawValueExpression}) ? default(System.Numerics.BigInteger?) : System.Numerics.BigInteger.Parse({rawValueExpression})",
+            Bool => $"{ParseBoolFunctionName}({rawValueExpression})",
+            NullableBool => $"{IsNullFunctionName}({rawValueExpression}) ? default(bool?) : {ParseBoolFunctionName}({rawValueExpression})",
             Char => $"char.Parse({ rawValueExpression })",
-            NullableChar => $"string.IsNullOrWhiteSpace({ rawValueExpression }) ? default(char?) : char.Parse({ rawValueExpression })",
+            NullableChar => $"{IsNullFunctionName}({ rawValueExpression }) ? default(char?) : char.Parse({ rawValueExpression })",
             DateTime => $"System.DateTime.Parse({ rawValueExpression })",
-            NullableDateTime => $"string.IsNullOrWhiteSpace({ rawValueExpression }) ? default(System.DateTime?) : System.DateTime.Parse({ rawValueExpression })",
+            NullableDateTime => $"{IsNullFunctionName}({ rawValueExpression }) ? default(System.DateTime?) : System.DateTime.Parse({ rawValueExpression })",
             DateTimeOffset => $"System.DateTimeOffset.Parse({ rawValueExpression })",
-            NullableDateTimeOffset => $"string.IsNullOrWhiteSpace({ rawValueExpression }) ? default(System.DateTimeOffset?) : System.DateTimeOffset.Parse({ rawValueExpression })",
+            NullableDateTimeOffset => $"{IsNullFunctionName}({ rawValueExpression }) ? default(System.DateTimeOffset?) : System.DateTimeOffset.Parse({ rawValueExpression })",
             Decimal => $"decimal.Parse({ rawValueExpression })",
-            NullableDecimal => $"string.IsNullOrWhiteSpace({ rawValueExpression }) ? default(decimal?) : decimal.Parse({ rawValueExpression })",
+            NullableDecimal => $"{IsNullFunctionName}({ rawValueExpression }) ? default(decimal?) : decimal.Parse({ rawValueExpression })",
             Double => $"double.Parse({ rawValueExpression })",
-            NullableDouble => $"string.IsNullOrWhiteSpace({ rawValueExpression }) ? default(double?) : double.Parse({ rawValueExpression })",
+            NullableDouble => $"{IsNullFunctionName}({ rawValueExpression }) ? default(double?) : double.Parse({ rawValueExpression })",
             Guid => $"System.Guid.Parse({ rawValueExpression })",
-            NullableGuid => $"string.IsNullOrWhiteSpace({ rawValueExpression }) ? default(System.Guid?) : System.Guid.Parse({ rawValueExpression })",
+            NullableGuid => $"{IsNullFunctionName}({ rawValueExpression }) ? default(System.Guid?) : System.Guid.Parse({ rawValueExpression })",
             Int64 => $"long.Parse({ rawValueExpression })",
-            NullableInt64 => $"string.IsNullOrWhiteSpace({ rawValueExpression }) ? default(long?) : long.Parse({ rawValueExpression })",
+            NullableInt64 => $"{IsNullFunctionName}({ rawValueExpression }) ? default(long?) : long.Parse({ rawValueExpression })",
             Int32 => $"int.Parse({ rawValueExpression })",
-            NullableInt32 => $"string.IsNullOrWhiteSpace({ rawValueExpression }) ? default(int?) : int.Parse({ rawValueExpression })",
+            NullableInt32 => $"{IsNullFunctionName}({ rawValueExpression }) ? default(int?) : int.Parse({ rawValueExpression })",
             Int16 => $"short.Parse({ rawValueExpression })",
-            NullableInt16 => $"string.IsNullOrWhiteSpace({ rawValueExpression }) ? default(short?) : short.Parse({ rawValueExpression })",
+            NullableInt16 => $"{IsNullFunctionName}({ rawValueExpression }) ? default(short?) : short.Parse({ rawValueExpression })",
             Byte => $"byte.Parse({ rawValueExpression })",
-            NullableByte => $"string.IsNullOrWhiteSpace({ rawValueExpression }) ? default(byte?) : byte.Parse({ rawValueExpression })",
+            NullableByte => $"{IsNullFunctionName}({ rawValueExpression }) ? default(byte?) : byte.Parse({ rawValueExpression })",
             Timespan => $"System.TimeSpan.Parse({ rawValueExpression })",
-            NullableTimespan => $"string.IsNullOrWhiteSpace({ rawValueExpression }) ? default(System.TimeSpan?) : System.TimeSpan.Parse({ rawValueExpression })",
+            NullableTimespan => $"{IsNullFunctionName}({ rawValueExpression }) ? default(System.TimeSpan?) : System.TimeSpan.Parse({ rawValueExpression })",
             _ => throw new System.NotImplementedException("missing parser for " + bestType),
         };
 

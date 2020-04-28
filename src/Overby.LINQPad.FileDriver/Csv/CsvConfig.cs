@@ -17,9 +17,9 @@ namespace Overby.LINQPad.FileDriver.Csv
         /// </summary>
         public string Header { get; set; }
 
-        public StringValues TrueStrings { get; set; } = new StringValues(true, bool.TrueString, "1");
-        public StringValues FalseStrings { get; set; } = new StringValues(true, bool.FalseString, "0");
-        public StringValues NullStrings { get; set; } = new StringValues(false, string.Empty);
+        public StringValues TrueStrings { get; set; } = StringValues.DefaultTrueStrings;
+        public StringValues FalseStrings { get; set; } = StringValues.DefaultFalseStrings;
+        public StringValues NullStrings { get; set; } = StringValues.DefaultNullStrings;
         
         public Dictionary<string, BestType> BestTypes { get; set; }
 

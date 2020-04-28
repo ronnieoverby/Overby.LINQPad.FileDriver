@@ -37,8 +37,8 @@ namespace Overby.LINQPad.FileDriver
 
         public override List<ExplorerItem> GetSchemaAndBuildAssembly(IConnectionInfo cxInfo, AssemblyName assemblyToBuild, ref string nameSpace, ref string typeName)
         {
-            //File.Delete(@"C:\Users\ronnie.overby\Desktop\test\4c5b497501bc4040a0c41dbf47805704");
-            //Debugger.Launch();
+            File.Delete(@"C:\Users\ronnie.overby\Desktop\dbug\4c5b497501bc4040a0c41dbf47805704");
+            Debugger.Launch();
 
             var cxProps = new ConnectionProperties(cxInfo);
             var root = new DirectoryInfo(cxProps.DataDirectoryPath);
@@ -107,7 +107,7 @@ namespace Overby.LINQPad.FileDriver
                 {
                     var fileConfig = fileTag.FileConfig;
                     var (WriteRecordMembers, WriteReaderImplementation) =
-                        fileTag.CodeGenerator.GetCodeGenerators(fileConfig);                    
+                        fileTag.CodeGenerator.GetCodeGenerators(fileConfig);
 
                     using (writer.Region(fileTag.File))
                     using (writer.NameSpace(fileTag.File.GetNameIdentifier()))
@@ -132,7 +132,7 @@ namespace Overby.LINQPad.FileDriver
                                 $"public static {IEnumerable(RecordClassName)} {ReaderReadMethodName}" +
                                 $"(string {ReaderFilePathVariableName} = {ReaderFilePathConstName})"))
                                 WriteReaderImplementation(writer);
-                        }                
+                        }
                     }
                 }
 
@@ -147,7 +147,7 @@ namespace Overby.LINQPad.FileDriver
                         var alias = fileTag.File.FullName.UniqueIdentifier();
                         var recordType = $"{alias}.{RecordClassName}";
                         var readCall = $"{alias}.{ReaderClassName}.{ReaderReadMethodName}()";
-                        
+
                         writer.MemberComment(fileTag.File.FullName);
                         writer.WriteLine(
                             $"public {IEnumerable(recordType)} {fileIdentifier} => {readCall};");
@@ -191,7 +191,7 @@ namespace Overby.LINQPad.FileDriver
 				typeof (DataSet).Assembly.Location         // System.Data
 			};
 #endif
-            assembliesToReference = assembliesToReference.Concat(new[] 
+            assembliesToReference = assembliesToReference.Concat(new[]
             {
                 typeof(CsvRecord).Assembly.Location,
                 typeof(DynamicDriver).Assembly.Location,

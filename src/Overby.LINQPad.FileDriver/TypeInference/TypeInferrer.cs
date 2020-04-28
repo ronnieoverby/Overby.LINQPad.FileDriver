@@ -1,5 +1,4 @@
 ﻿using static Overby.LINQPad.FileDriver.TypeInference.ParsedValue;
-using static System.StringComparison;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -10,19 +9,10 @@ namespace Overby.LINQPad.FileDriver.TypeInference
     {
         public static Dictionary<TKey, BestType> DetermineBestTypes<TKey>(
             IEnumerable<IEnumerable<(TKey key, string value)>> sequence,
-            string[] falseStrings,
-            string[] trueStrings,
-            System.Func<string, bool> isNullOrEmpty)
+            HashSet<string> trueStrings,
+            HashSet<string> falseStrings,
+            HashSet<string> nullStrings)
         {
-            trueStrings ??= new[] { bool.TrueString, "1" };
-            falseStrings ??= new[] { bool.FalseString, "0" };
-
-            var trueStrings1 = trueStrings.Where(s => s.Length == 1).ToArray();
-            var falseStrings1 = falseStrings.Where(s => s.Length == 1).ToArray();
-
-            trueStrings = trueStrings.Except(trueStrings1).ToArray();
-            falseStrings = falseStrings.Except(falseStrings1).ToArray();
-
             var parsedValues = new Dictionary<TKey, HashSet<ParsedValue>>();
 
             foreach (var record in sequence)
@@ -32,7 +22,7 @@ namespace Overby.LINQPad.FileDriver.TypeInference
                     if (!parsedValues.TryGetValue(key, out var set))
                         set = parsedValues[key] = new HashSet<ParsedValue>();
 
-                    if (set.Contains(ParsedValue.String))
+                    if (set.Contains(String))
                         // no need
                         continue;
 
@@ -40,9 +30,20 @@ namespace Overby.LINQPad.FileDriver.TypeInference
 
                     // for similar types (numerics/dates/bools) parse from least wide to most wide types
 
-                    if (string.IsNullOrWhiteSpace(value) || isNullOrEmpty?.Invoke(value) == true) 
+                    if (nullStrings?.Contains(value) == true)
                     {
                         set.Add(EmptyString);
+                    }
+
+                    // bool
+
+                    else if (trueStrings?.Contains(value) == true)
+                    {
+                        set.Add(TrueString);
+                    }
+                    else if (falseStrings?.Contains(value) == true)
+                    {
+                        set.Add(FalseString);
                     }
 
                     // bool -> numeric -> char -> string
@@ -54,28 +55,6 @@ namespace Overby.LINQPad.FileDriver.TypeInference
                     else if ("0" == value)
                     {
                         set.Add(Zero);
-                    }
-
-                    // bool -> char -> string
-
-                    else if (ieq(trueStrings1))
-                    {
-                        set.Add(TrueString1);
-                    }
-                    else if (ieq(falseStrings1))
-                    {
-                        set.Add(FalseString1);
-                    }
-
-                    // bool -> string
-
-                    else if (ieq(trueStrings))
-                    {
-                        set.Add(TrueString);
-                    }
-                    else if (ieq(falseStrings))
-                    {
-                        set.Add(FalseString);
                     }
 
                     // numerics
@@ -144,9 +123,6 @@ namespace Overby.LINQPad.FileDriver.TypeInference
                     {
                         set.Add(String);
                     }
-
-                    bool ieq(string[] xs) => // equals ignore case
-                       xs.Any(x => value.Equals(x, OrdinalIgnoreCase));
                 }
             }
 
@@ -179,22 +155,22 @@ namespace Overby.LINQPad.FileDriver.TypeInference
 
             BestType best;
 
+            // bool
+            if (WidestTypeMapAll(out best,
+                    TrueString, // all
+                    TrueString, FalseString))
+                return best;
+
             // numerics
             if (WidestTypeMapped(out best,
                     new[] { Double, Decimal, BigInt, Int64, Int32, Int16, Byte, One, Zero },
                     new[] { Double, Decimal, BigInt, Int64, Int32, Int16, Byte, Byte, Byte }))
                 return best;
 
-            // booleans
-            if (WidestTypeMapAll(out best,
-                    TrueString, // all
-                    TrueString, FalseString, TrueString1, FalseString1, One, Zero))
-                return best;
-
             // chars
             if (WidestTypeMapAll(out best,
                     Char, // all
-                    Char, One, Zero, TrueString1, FalseString1))
+                    Char, One, Zero))
                 return best;
 
             // dates
@@ -255,11 +231,8 @@ namespace Overby.LINQPad.FileDriver.TypeInference
                 Int16 => nullable ? BestType.NullableInt16 : BestType.Int16,
                 Byte => nullable ? BestType.NullableByte : BestType.Byte,
 
-                One => nullable ? BestType.NullableBool : BestType.Bool,
-                Zero => nullable ? BestType.NullableBool : BestType.Bool,
-
-                TrueString1 => nullable ? BestType.NullableBool : BestType.Bool,
-                FalseString1 => nullable ? BestType.NullableBool : BestType.Bool,
+                One => nullable ? BestType.NullableByte : BestType.Byte,
+                Zero => nullable ? BestType.NullableByte : BestType.Byte,
 
                 TrueString => nullable ? BestType.NullableBool : BestType.Bool,
                 FalseString => nullable ? BestType.NullableBool : BestType.Bool,

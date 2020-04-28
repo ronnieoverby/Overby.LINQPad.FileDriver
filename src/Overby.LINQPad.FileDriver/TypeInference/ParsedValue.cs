@@ -18,8 +18,8 @@
 
         One, Zero, // could be bool/numeric/char
 
-        TrueString1,
-        FalseString1,
+        //TrueString1,
+        //FalseString1,
         TrueString,
         FalseString,
 

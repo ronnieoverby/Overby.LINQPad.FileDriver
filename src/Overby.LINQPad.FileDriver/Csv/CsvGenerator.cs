@@ -40,13 +40,10 @@ namespace Overby.LINQPad.FileDriver.Csv
                             let value = rec.ContainsKey(k) ? "" : rec[k]
                             select (k, value);
 
-                bool IsNullString(string s) =>
-                    string.IsNullOrEmpty(s) || csvConfig.NullStrings.Values.Contains(s);
-
                 return TypeInferrer.DetermineBestTypes(q,
-                    csvConfig.FalseStrings.Values,
-                    csvConfig.TrueStrings.Values,
-                    isNullOrEmpty: IsNullString);
+                    csvConfig.TrueStrings?.GetHashSet(),
+                    csvConfig.FalseStrings?.GetHashSet(),
+                    csvConfig.NullStrings?.GetHashSet());
             }
 
             TextReader GetTextReader(StreamReader fileReader)
@@ -68,7 +65,8 @@ namespace Overby.LINQPad.FileDriver.Csv
             };
         }
 
-        public (Action<TextWriter> WriteRecordMembers, Action<TextWriter> WriteReaderImplementation)
+        public (Action<TextWriter> WriteRecordMembers, 
+            Action<TextWriter> WriteReaderImplementation)
             GetCodeGenerators(IFileConfig fileConfig)
         {
             var csvConfig = (CsvConfig)fileConfig;
@@ -85,7 +83,11 @@ namespace Overby.LINQPad.FileDriver.Csv
                let propName = bt.Key.ToIdentifier(propIdentifierScope)
                let csPropType = GetTypeRef(bt.Value)
                let propDef = $@"public {csPropType} {propName} {{ get; set; }}"
-               let rawValueExpression = $"{csvRecord}[{bt.Key.ToVerbatimString()}]"
+               let rawValueExpression = $"{csvRecord}[{bt.Key.ToVerbatimString()}]" +
+
+                    // trim values before parsing; don't trim unparsed strings
+                    (bt.Value == BestType.String ? "" : ".Trim()")
+
                let parser = GetParserCode(bt.Value, rawValueExpression)
                let propAssignment = $@"{propName} = {parser}"
                select (propDef, propAssignment, propName, csPropType, rawFieldKey: bt.Key)).ToArray();
@@ -93,17 +95,6 @@ namespace Overby.LINQPad.FileDriver.Csv
             SetPropertyExplorerItems();
 
             return (GenerateRecordMembers, GenerateReaderImplementation);
-
-            void SetPropertyExplorerItems()
-            {
-                csvConfig.PropertyItems = new List<ExplorerItem>(
-                    from rp in recordProperties
-                    select new ExplorerItem(rp.rawFieldKey, ExplorerItemKind.Property, ExplorerIcon.Column)
-                    {
-                        DragText = rp.propName,
-                        ToolTipText= rp.csPropType
-                    });
-            }
 
             void GenerateRecordMembers(TextWriter writer) =>
                 writer.WriteLines(recordProperties.Select(x => x.propDef));
@@ -120,8 +111,56 @@ using(var {reader} = new System.IO.StreamReader({ReaderFilePathVariableName}))
         {{
             {recordProperties.Select(rp => rp.propAssignment).StringJoin("," + Environment.NewLine)}
         }};
-    }}        
-}}");
+    }}
+}}
+
+{GenerateIsNullFunction()}
+
+{GenerateParseBoolFunction()}");
+
+            string GenerateIsNullFunction()
+            {
+                var nullStrings = csvConfig.NullStrings ?? StringValues.DefaultNullStrings;
+
+                var predicates = string.Join(" || ",
+                    csvConfig.NullStrings.Values.Select(GetPredicate));
+
+                return $"bool IsNull(string value) => {predicates};";
+
+                string GetPredicate(string nul) => csvConfig.NullStrings.IgnoreCase
+                        ? $"value.Equals({nul.ToLiteral()}, System.StringComparison.OrdinalIgnoreCase)"
+                        : $"value == {nul.ToLiteral()}";
+            }
+
+            string GenerateParseBoolFunction()
+            {
+                // I don't think there's a point in comparing the false strings;
+                // They were only useful for identifying if the type was boolean or not
+
+                var trueStrings = csvConfig.TrueStrings ?? StringValues.DefaultTrueStrings;
+
+                var predicates = string.Join(" || ",
+                    csvConfig.TrueStrings.Values.Select(GetPredicate));
+
+                return $"bool ParseBool(string value) => {predicates};";
+
+                string GetPredicate(string ns) => csvConfig.NullStrings.IgnoreCase
+                        ? $"value.Equals({ns.ToLiteral()}, System.StringComparison.OrdinalIgnoreCase)"
+                        : $"value == {ns.ToLiteral()}";
+            }
+
+            void SetPropertyExplorerItems()
+            {
+                // adds property/column child items to file explorer item
+
+                csvConfig.PropertyItems = new List<ExplorerItem>(
+                    from rp in recordProperties
+                    select new ExplorerItem(rp.rawFieldKey, ExplorerItemKind.Property, ExplorerIcon.Column)
+                    {
+                        DragText = rp.propName,
+                        ToolTipText = rp.csPropType
+                    });
+            }
         }
     }
 }
