@@ -37,7 +37,8 @@ namespace Overby.LINQPad.FileDriver.Csv
                             record: record)
                         select
                             from k in rec.Keys
-                            select (k, rec[k]);
+                            let value = rec.ContainsKey(k) ? "" : rec[k]
+                            select (k, value);
 
                 bool IsNullString(string s) =>
                     string.IsNullOrEmpty(s) || csvConfig.NullStrings.Values.Contains(s);

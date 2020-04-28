@@ -7,8 +7,8 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageTags>linqpaddriver</PackageTags>
 		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-		<Version>0.0.1-alpha4</Version>
-		<FileVersion>0.0.1.4</FileVersion>
+		<Version>0.0.1-alpha5</Version>
+		<FileVersion>0.0.1.5</FileVersion>
 		<PackageReleaseNotes>Initial nuget release.</PackageReleaseNotes>
 		<Description>Query local data files in LINQPad!</Description>
 		<Copyright>2020 Ronnie Overby</Copyright>

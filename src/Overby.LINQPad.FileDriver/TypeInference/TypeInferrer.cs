@@ -36,7 +36,7 @@ namespace Overby.LINQPad.FileDriver.TypeInference
                         // no need
                         continue;
 
-                    var value = rawValue.Trim();
+                    var value = rawValue == null ? "" : rawValue.Trim();
 
                     // for similar types (numerics/dates/bools) parse from least wide to most wide types
 
