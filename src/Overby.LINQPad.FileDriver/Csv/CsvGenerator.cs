@@ -36,14 +36,15 @@ namespace Overby.LINQPad.FileDriver.Csv
                             textQualifier: csvConfig.TextQualifier,
                             record: record)
                         select
-                            from k in rec.Keys
-                            let value = rec.ContainsKey(k) ? "" : rec[k]
-                            select (k, value);
+                            from key in rec.Keys
+                            let value = rec.TryGetValue(key, out var value) ? value : string.Empty
+                            select (key, value); // todo - prevent so many copies
 
                 return TypeInferrer.DetermineBestTypes(q,
                     csvConfig.TrueStrings?.GetHashSet(),
                     csvConfig.FalseStrings?.GetHashSet(),
                     csvConfig.NullStrings?.GetHashSet());
+
             }
 
             TextReader GetTextReader(StreamReader fileReader)

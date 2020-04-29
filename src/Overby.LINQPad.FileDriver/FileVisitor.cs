@@ -154,6 +154,7 @@ namespace Overby.LINQPad.FileDriver
             {
                 ".csv" => new Csv.CsvGenerator(),
                 ".tsv" => new Csv.CsvGenerator(),
+                ".txt" => new Txt.TextGenerator(),
                 _ => null
             };
         }

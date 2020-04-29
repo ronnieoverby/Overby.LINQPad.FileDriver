@@ -31,7 +31,8 @@ namespace Overby.LINQPad.FileDriver
             return (T)Cache.GetOrAdd(cacheKey, _ => factory());
         }
 
-        private static readonly Lazy<Memoizer> LazyInstance = new Lazy<Memoizer>(() => new Memoizer());
-        public static Memoizer Instance => LazyInstance.Value;
+        private static readonly Lazy<Memoizer> _lazyInstance = new Lazy<Memoizer>(() => new Memoizer());
+
+        public static Memoizer Instance => _lazyInstance.Value;
     }
 }

@@ -2,6 +2,7 @@ using LINQPad.Extensibility.DataContext;
 using Overby.Extensions.Text;
 using Overby.LINQPad.FileDriver.Configuration;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -37,12 +38,14 @@ namespace Overby.LINQPad.FileDriver
 
         public override List<ExplorerItem> GetSchemaAndBuildAssembly(IConnectionInfo cxInfo, AssemblyName assemblyToBuild, ref string nameSpace, ref string typeName)
         {
+#if DEBUG
             File.Delete(@"C:\Users\ronnie.overby\Desktop\dbug\4c5b497501bc4040a0c41dbf47805704");
             Debugger.Launch();
+#endif
 
             var cxProps = new ConnectionProperties(cxInfo);
             var root = new DirectoryInfo(cxProps.DataDirectoryPath);
-            typeName = $"{SchemaNameSpace}.{root.Name.ToIdentifier()}.{SchemaClassName}";
+            typeName = $"{SchemaNameSpace}.{root.GetNameIdentifier()}.{SchemaClassName}";
             var rootConfig = RootConfig.LoadRootConfig(root);
             var schema = FileVisitor.VisitRoot(root, rootConfig);
             rootConfig.Save(root);
@@ -114,7 +117,7 @@ namespace Overby.LINQPad.FileDriver
                     {
                         // record class
                         writer.MemberComment("Record type for" + fileTag.File.FullName);
-                        using (writer.Brackets("public class " + RecordClassName))
+                        using (writer.Brackets($"public class {RecordClassName} : { CodeGen.GetTypeRef(typeof(Tooty.FileRecord))}"))
                             WriteRecordMembers(writer);
 
                         // reader class
@@ -138,7 +141,7 @@ namespace Overby.LINQPad.FileDriver
 
                 // write folder schema types
                 writer.MemberComment(folder.FullName);
-                using var _3 = writer.Brackets("public class " + SchemaClassName);
+                using var _3 = writer.Brackets($"public class {SchemaClassName} : { CodeGen.GetTypeRef(typeof(Tooty.FolderSchema))}");
 
                 using (writer.Region("File Members"))
                     foreach (var (item, fileTag) in fileItems)
@@ -147,10 +150,11 @@ namespace Overby.LINQPad.FileDriver
                         var alias = fileTag.File.FullName.UniqueIdentifier();
                         var recordType = $"{alias}.{RecordClassName}";
                         var readCall = $"{alias}.{ReaderClassName}.{ReaderReadMethodName}()";
+                        var enumerableType = $"Tooty.FileEnumerable<{recordType}>";                      
 
                         writer.MemberComment(fileTag.File.FullName);
                         writer.WriteLine(
-                            $"public {IEnumerable(recordType)} {fileIdentifier} => {readCall};");
+                            $"public {enumerableType} {fileIdentifier} {{ get; }} = new {enumerableType}({readCall}, {fileTag.File.FullName.ToLiteral()});");
                     }
 
                 using (writer.Region("Sub Folder Members"))
@@ -162,7 +166,7 @@ namespace Overby.LINQPad.FileDriver
                         var folderId = subFolderTag.Folder.GetNameIdentifier();
                         writer.MemberComment(subFolderTag.Folder.FullName);
                         writer.WriteLine(
-                            $"public {schemaType} {folderId} {{ get; }} = new {schemaType}();");
+                            $"public {schemaType} {folderId} {{ get; }} = {schemaType}();");
                     }
                 }
 
@@ -209,5 +213,35 @@ namespace Overby.LINQPad.FileDriver
             if (compileResult.Errors.Length > 0)
                 throw new Exception("Cannot compile typed context: " + compileResult.Errors[0]);
         }
+    }
+}
+
+namespace Tooty
+{
+    public class FolderSchema
+    {
+
+    }
+
+    public class FileRecord
+    {
+
+    }
+
+    public class FileEnumerable<T> : IEnumerable<T>
+    {
+        private readonly IEnumerable<T> _enumerable;
+        public string FilePath { get; }
+
+        public FileEnumerable(IEnumerable<T> enumerable, string filePath)
+        {
+            _enumerable = enumerable;
+            FilePath = filePath;
+        }
+
+
+        public IEnumerator<T> GetEnumerator() => _enumerable.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => _enumerable.GetEnumerator();
     }
 }
