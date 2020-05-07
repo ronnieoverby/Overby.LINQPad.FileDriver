@@ -37,7 +37,7 @@ namespace Overby.LINQPad.FileDriver.Csv
                             record: record)
                         select
                             from k in rec.Keys
-                            let value = rec.ContainsKey(k) ? "" : rec[k]
+                            let value = rec.ContainsKey(k) ? rec[k] : string.Empty
                             select (k, value);
 
                 return TypeInferrer.DetermineBestTypes(q,
@@ -65,7 +65,7 @@ namespace Overby.LINQPad.FileDriver.Csv
             };
         }
 
-        public (Action<TextWriter> WriteRecordMembers, 
+        public (Action<TextWriter> WriteRecordMembers,
             Action<TextWriter> WriteReaderImplementation)
             GetCodeGenerators(IFileConfig fileConfig)
         {

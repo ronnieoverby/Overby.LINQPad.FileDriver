@@ -1,17 +1,26 @@
 ﻿using Overby.LINQPad.FileDriver.TypeInference;
-using static Overby.LINQPad.FileDriver.CodeGenConstants;
 using System.CodeDom;
 using System.CodeDom.Compiler;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading;
+using static Overby.LINQPad.FileDriver.CodeGenConstants;
 using static Overby.LINQPad.FileDriver.TypeInference.BestType;
 
 namespace Overby.LINQPad.FileDriver
 {
     internal static class CodeGen
     {
+
+
+        private static readonly ThreadLocal<CodeDomProvider> _provider = new ThreadLocal<CodeDomProvider>(() =>
+            CodeDomProvider.CreateProvider("CSharp"));
+
+        private static CodeDomProvider Provider => _provider.Value;
+
+
+
         public static string GetTypeRef(BestType bestType) => bestType switch
         {
             String => "string",
@@ -90,35 +99,42 @@ namespace Overby.LINQPad.FileDriver
         internal static string GenCode(this CodeExpression expr)
         {
             using var writer = new StringWriter();
-            using var provider = CodeDomProvider.CreateProvider("CSharp");
-            provider.GenerateCodeFromExpression(expr, writer, null);
+            Provider.GenerateCodeFromExpression(expr, writer, null);
             return writer.ToString();
         }
 
         internal static string ToVerbatimString(this string s) =>
             $"@\"{s.Replace("\"", "\"\"")}\"";
 
+        private static (HashSet<string> registry, object mutex) GetIdRegistry(string scope) =>
+            Memoizer.Instance.Get(new { scope }, () => (new HashSet<string>(), new object()));
 
 
         internal static string ToIdentifier(this string s)
         {
-            if (string.IsNullOrWhiteSpace(s))
+            if (string.IsNullOrEmpty(s))
                 throw new System.ArgumentException("string was empty", nameof(s));
 
             return Memoizer.Instance.Get(s, () =>
             {
+                if (Provider.IsValidIdentifier(s))
+                    return s;
+
+                // CreateValidIdentifier(string) only returns a different value
+                // when the passed value is a reserved keyword
+                // so this code must check for non-identifier characters
+                // and leading digits
+
                 var identifier = Regex.Replace(s, @"[^a-zA-Z0-9_]", "_");
 
                 if (char.IsDigit(identifier[0]))
                     return "_" + identifier;
 
-                return identifier;
+                return Provider.IsValidIdentifier(identifier)
+                    ? identifier
+                    : Provider.CreateValidIdentifier(identifier);
             });
         }
-
-        private static (HashSet<string> registry, object mutex) GetIdRegistry(string scope) =>
-            Memoizer.Instance.Get(new { scope }, () => (new HashSet<string>(), new object()));
-
         internal static string ToIdentifier(this string s, string scope)
         {
             if (string.IsNullOrWhiteSpace(s))
@@ -129,7 +145,6 @@ namespace Overby.LINQPad.FileDriver
                 var identifier = ToIdentifier(s);
 
                 var (registry, mutex) = GetIdRegistry(scope);
-
                 lock (mutex)
                 {
                     var attempt = identifier;

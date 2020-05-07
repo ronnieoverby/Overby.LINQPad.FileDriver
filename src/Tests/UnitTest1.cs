@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using Overby.LINQPad.FileDriver;
 using System;
+using System.CodeDom.Compiler;
 using System.IO;
 using System.Linq;
 
@@ -35,11 +36,6 @@ namespace Tests
             Assert.AreEqual("mydata.sub1.sub2.file_csv", typeName);
         }
 
-        [Test]
-        public void CS_Identifier_Underscores()
-        {
-            Assert.AreEqual("_2_birds_1_bush_csv", "2 birds 1 bush.csv".ToIdentifier());
-        }
 
         [Test]
         public void FileSystemIdentifiersAre_Deduped_Scoped_To_Parents()
@@ -57,7 +53,26 @@ namespace Tests
 
         }
 
-       
-
+        [Test]
+        [TestCase("test", "test")]
+        [TestCase("bool", "_bool")]
+        [TestCase("Bool", "Bool")]
+        [TestCase("class", "_class")]
+        [TestCase("123", "_123")]
+        [TestCase("class123", "class123")]
+        [TestCase("123class", "_123class")]
+        [TestCase("hello world!", "hello_world_")]
+        [TestCase("yeet world.csv", "yeet_world_csv")]
+        [TestCase(" ", "_")]
+        [TestCase("\t", "_")]
+        [TestCase("\r\n", "__")]
+        public void ValidIdentifierTests(string input, string expected)
+        {
+            string actual = input.ToIdentifier();
+            Assert.AreEqual(expected, actual);
+            
+            using var codeDomProvider = CodeDomProvider.CreateProvider("CSharp");
+            Assert.True(codeDomProvider.IsValidIdentifier(actual));
+        }
     }
 }
