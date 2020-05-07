@@ -1,39 +1,35 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.IO;
-
 using LINQPad.Extensibility.DataContext;
+using Microsoft.Win32;
+using Microsoft.WindowsAPICodePack.Dialogs;
+using System.Windows;
 
 namespace Overby.LINQPad.FileDriver
 {
-	public partial class ConnectionDialog : Window
-	{
-		IConnectionInfo _cxInfo;
+    public partial class ConnectionDialog : Window
+    {
+        private readonly ConnectionProperties _model;
 
-		public ConnectionDialog (IConnectionInfo cxInfo)
-		{
-			_cxInfo = cxInfo;
+        public ConnectionDialog(IConnectionInfo cxInfo)
+        {
 
-			// ConnectionProperties is your view-model.
-			DataContext = new ConnectionProperties (cxInfo);
+            // ConnectionProperties is your view-model.
+            DataContext = _model = new ConnectionProperties(cxInfo);
 
-			InitializeComponent ();
-		}
+            InitializeComponent();
+        }
 
-		void btnOK_Click (object sender, RoutedEventArgs e)
-		{
-			DialogResult = true;
-		}		
-	}
+        void btnOK_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = true;
+        }
+
+        private void BrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            using var d = new CommonOpenFileDialog { IsFolderPicker = true, EnsureFileExists = true };
+            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                _model.DataDirectoryPath = d.FileName;
+            }
+        }
+    }
 }

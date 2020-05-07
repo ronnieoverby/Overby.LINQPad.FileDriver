@@ -17,10 +17,14 @@
         </TextBlock>
         
         <Label Padding="0,15,0,2">Data directory path:</Label>
-        <TextBox Name="txtDataDirectoryPath" Padding="2" Text="{Binding DataDirectoryPath}" />
+        <DockPanel>
+            <Button DockPanel.Dock="Right" Margin="2,0,0,0" Click="BrowseButton_Click">Browse</Button>
+            <TextBox Name="txtDataDirectoryPath"  Text="{Binding DataDirectoryPath, UpdateSourceTrigger=PropertyChanged}" />
+
+        </DockPanel>
 
         <Label Padding="0,15,0,2">Friendly name for this connection (optional):</Label>
-        <TextBox Name="txtFriendlyName" Padding="2" Text="{Binding ConnectionInfo.DisplayName}" />
+        <TextBox Name="txtFriendlyName" Padding="2" Text="{Binding DisplayName}" />
 
         <DockPanel LastChildFill="False" Margin="0,15,0,0">
 			<CheckBox IsChecked="{Binding ConnectionInfo.Persist}" VerticalAlignment="Center">Remember this connection</CheckBox>

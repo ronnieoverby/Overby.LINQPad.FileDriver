@@ -24,6 +24,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="LINQPad.Reference" Version="1.*" />
+		<PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
 		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
 		<PackageReference Include="Overby.Extensions.Text" Version="1.0.0-beta2" />
 		<PackageReference Include="System.ValueTuple" Version="4.5.0" />

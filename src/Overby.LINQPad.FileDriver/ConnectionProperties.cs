@@ -1,5 +1,6 @@
 using LINQPad.Extensibility.DataContext;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 
@@ -21,6 +22,19 @@ namespace Overby.LINQPad.FileDriver
             ConnectionInfo = cxInfo;
         }
 
+        public string DisplayName 
+        {
+            get => ConnectionInfo.DisplayName;
+            set
+            {
+                if (value == ConnectionInfo.DisplayName)
+                    return;
+
+                ConnectionInfo.DisplayName = value;
+                PropChanged();
+            }
+        }
+
         public string DataDirectoryPath
         {
             get => (string)GetElement();
@@ -29,7 +43,29 @@ namespace Overby.LINQPad.FileDriver
                 if (DataDirectoryPath?.Equals(value) == true)
                     return;
 
+                var setDisplayName =
+                    string.IsNullOrWhiteSpace(DisplayName)
+                    || (TryGetDirectoryInfo(DataDirectoryPath, out var originalDirectory)
+                            && originalDirectory.Name == DisplayName);
+
                 SetDriverData(value);
+
+                if (setDisplayName && TryGetDirectoryInfo(value, out var directoryInfo))
+                    DisplayName = directoryInfo.Name;
+            }
+        }
+
+        bool TryGetDirectoryInfo(string s, out DirectoryInfo directoryInfo)
+        {
+            try
+            {
+                directoryInfo = new DirectoryInfo(s);
+                return true;
+            }
+            catch
+            {
+                directoryInfo = default;
+                return false;
             }
         }
 
@@ -44,7 +80,7 @@ namespace Overby.LINQPad.FileDriver
                 PropChanged(name);
         }
 
-        void PropChanged([CallerMemberName]string name = null) => 
+        void PropChanged([CallerMemberName]string name = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }
