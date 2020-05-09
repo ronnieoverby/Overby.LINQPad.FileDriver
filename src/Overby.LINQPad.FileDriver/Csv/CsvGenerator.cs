@@ -40,10 +40,32 @@ namespace Overby.LINQPad.FileDriver.Csv
                             let value = rec.ContainsKey(k) ? rec[k] : string.Empty
                             select (k, value);
 
-                return TypeInferrer.DetermineBestTypes(q,
-                    csvConfig.TrueStrings?.GetHashSet(),
-                    csvConfig.FalseStrings?.GetHashSet(),
-                    csvConfig.NullStrings?.GetHashSet());
+                return TypeInferrer.DetermineBestTypes(q, new TypeInferrer.Options { UserParser = CreateUserParser() });
+
+                TypeInferrer.TryParseValue CreateUserParser()
+                {
+                    var trueSet = csvConfig.TrueStrings?.GetHashSet();
+                    var falseSet = csvConfig.FalseStrings?.GetHashSet();
+                    var nullSet = csvConfig.NullStrings?.GetHashSet();
+
+                    return (string v, out ParsedValue x) =>
+                    {
+                        if (trueSet?.Contains(v) == true || falseSet?.Contains(v) == true)
+                        {
+                            x = ParsedValue.Bool;
+                            return true;
+                        }
+
+                        if (nullSet?.Contains(v) == true)
+                        {
+                            x = ParsedValue.EmptyString;
+                            return true;
+                        }
+
+                        x = default;
+                        return false;
+                    };
+                }
             }
 
             TextReader GetTextReader(StreamReader fileReader)

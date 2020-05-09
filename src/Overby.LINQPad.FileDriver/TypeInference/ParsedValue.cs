@@ -1,6 +1,6 @@
 ﻿namespace Overby.LINQPad.FileDriver.TypeInference
 {
-    enum ParsedValue
+    public enum ParsedValue
     {
         EmptyString,
 
@@ -18,12 +18,8 @@
 
         One, Zero, // could be bool/numeric/char
 
-        //TrueString1,
-        //FalseString1,
-        TrueString,
-        FalseString,
+        Bool,
 
-        DateTimeOffset,
         DateTime,
 
         Timespan,

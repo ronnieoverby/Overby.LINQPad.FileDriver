@@ -36,7 +36,6 @@ namespace Tests
             Assert.AreEqual("mydata.sub1.sub2.file_csv", typeName);
         }
 
-
         [Test]
         public void FileSystemIdentifiersAre_Deduped_Scoped_To_Parents()
         {
