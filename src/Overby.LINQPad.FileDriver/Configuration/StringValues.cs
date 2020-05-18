@@ -8,6 +8,11 @@ namespace Overby.LINQPad.FileDriver.Configuration
         public string[] Values { get; set; }
         public bool IgnoreCase { get; set; }
 
+        public StringValues()
+        {
+
+        }
+
         public StringValues(bool ignoreCase, params string[] values)
         {
             IgnoreCase = ignoreCase;
@@ -17,8 +22,8 @@ namespace Overby.LINQPad.FileDriver.Configuration
         public HashSet<string> GetHashSet() =>
             new HashSet<string>(Values, IgnoreCase ? OrdinalIgnoreCase : Ordinal);
 
-        public static readonly StringValues DefaultTrueStrings = new StringValues(true, "true", "1");
-        public static readonly StringValues DefaultFalseStrings = new StringValues(true, "false", "0");
-        public static readonly StringValues DefaultNullStrings = new StringValues(false, "");
+        public static StringValues DefaultTrueStrings => new StringValues(true, "true", "1");
+        public static StringValues DefaultFalseStrings => new StringValues(true, "false", "0");
+        public static StringValues DefaultNullStrings => new StringValues(false, "");
     }
 }

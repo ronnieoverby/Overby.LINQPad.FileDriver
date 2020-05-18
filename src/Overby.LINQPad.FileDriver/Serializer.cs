@@ -13,7 +13,7 @@ namespace Overby.LINQPad.FileDriver
 
         public static T Deserialize<T>(TextReader reader)
         {
-            using var jReader = new JsonTextReader(reader);            
+            using var jReader = new JsonTextReader(reader);
             return CreateJsonSerializer().Deserialize<T>(jReader);
         }
 
@@ -34,7 +34,8 @@ namespace Overby.LINQPad.FileDriver
             Converters = { new StringEnumConverter() },
             Formatting = Formatting.Indented,
             TypeNameHandling = TypeNameHandling.Auto,
-            TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
+            TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+            ObjectCreationHandling = ObjectCreationHandling.Replace,
         });
     }
 }
