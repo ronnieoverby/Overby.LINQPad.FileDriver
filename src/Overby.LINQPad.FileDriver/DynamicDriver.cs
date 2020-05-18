@@ -37,8 +37,10 @@ namespace Overby.LINQPad.FileDriver
 
         public override List<ExplorerItem> GetSchemaAndBuildAssembly(IConnectionInfo cxInfo, AssemblyName assemblyToBuild, ref string nameSpace, ref string typeName)
         {
+#if DEBUG
             //File.Delete(@"C:\Users\ronnie.overby\Desktop\dbug\4c5b497501bc4040a0c41dbf47805704");
             Debugger.Launch();
+#endif
 
             var cxProps = new ConnectionProperties(cxInfo);
             var root = new DirectoryInfo(cxProps.DataDirectoryPath);

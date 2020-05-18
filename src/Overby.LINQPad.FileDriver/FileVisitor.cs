@@ -31,14 +31,20 @@ namespace Overby.LINQPad.FileDriver
                 var files = folder.EnumerateFiles().Where(f =>
                     !f.Name.Equals(RootConfig.FileName, StringComparison.OrdinalIgnoreCase));
 
-                Parallel.ForEach(subs, sub =>
+                var popts = new ParallelOptions()
+#if DEBUG
+                { MaxDegreeOfParallelism = 1 }
+#endif
+                ;
+
+                Parallel.ForEach(subs, popts, sub =>
                 {
                     var item = VisitFolder(sub);
                     if (item.Children.Count > 0)
                         AddChild(item);
                 });
 
-                Parallel.ForEach(files, file =>
+                Parallel.ForEach(files, popts, file =>
                 {
                     var item = VisitFile(file);
                     if (item != null)
