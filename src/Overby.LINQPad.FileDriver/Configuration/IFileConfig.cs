@@ -10,12 +10,16 @@ namespace Overby.LINQPad.FileDriver.Configuration
 
         bool Ignore { get; set; }
 
-        byte[] LastHash { get; set; }
+        byte[] FileHash { get; set; }
 
         long LastLength { get; set; }
 
         DateTime LastWriteTimeUtc { get; set; }
 
         List<ExplorerItem> GetFileChildItems();
+        
+        byte[] ConfigHash { get; set; }
+
+        void HashConfigValues(Action<object> write);
     }
 }

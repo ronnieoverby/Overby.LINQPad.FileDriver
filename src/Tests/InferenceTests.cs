@@ -264,7 +264,7 @@ namespace Tests
             AssertBestType(Bool, 1, true, 0, false);
             AssertBestType(Bool, 0, true);
             AssertBestType(Bool, 1, false);
-            AssertBestType(NullableBool, 1, false," ");
+            AssertBestType(NullableBool, 1, false, " ");
         }
 
         #region Test Stuff

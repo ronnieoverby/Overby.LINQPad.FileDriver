@@ -23,33 +23,33 @@ namespace Overby.LINQPad.FileDriver
 
         public static string GetTypeRef(BestType bestType) => bestType switch
         {
-            String => "string",
-            Byte => "byte",
-            NullableByte => "byte?",
-            Int16 => "short",
-            NullableInt16 => "short?",
-            Int32 => "int",
-            NullableInt32 => "int?",
-            Int64 => "long",
-            NullableInt64 => "long?",
-            Decimal => "decimal",
-            NullableDecimal => "decimal?",
-            Double => "double",
-            NullableDouble => "double?",
-            Bool => "bool",
-            NullableBool => "bool?",
-            Char => "char",
-            NullableChar => "char?",
-            DateTime => "System.DateTime",
-            NullableDateTime => "System.DateTime?",
-            DateTimeOffset => "System.DateTimeOffset",
-            NullableDateTimeOffset => "System.DateTimeOffset?",
-            Guid => "System.Guid",
-            NullableGuid => "System.Guid?",
-            Timespan => "System.TimeSpan",
-            NullableTimespan => "System.TimeSpan?",
-            BigInt => "System.Numerics.BigInteger",
-            NullableBigInt => "System.Numerics.BigInteger?",
+            String => GetTypeRef<string>(),
+            Byte => GetTypeRef<byte>(),
+            NullableByte => GetTypeRef<byte?>(),
+            Int16 => GetTypeRef<short>(),
+            NullableInt16 => GetTypeRef<short?>(),
+            Int32 => GetTypeRef<int>(),
+            NullableInt32 => GetTypeRef<int?>(),
+            Int64 => GetTypeRef<long>(),
+            NullableInt64 => GetTypeRef<long?>(),
+            Decimal => GetTypeRef<decimal>(),
+            NullableDecimal => GetTypeRef<decimal?>(),
+            Double => GetTypeRef<double>(),
+            NullableDouble => GetTypeRef<double?>(),
+            Bool => GetTypeRef<bool>(),
+            NullableBool => GetTypeRef<bool?>(),
+            Char => GetTypeRef<char>(),
+            NullableChar => GetTypeRef<char?>(),
+            DateTime => GetTypeRef<System.DateTime>(),
+            NullableDateTime => GetTypeRef<System.DateTime?>(),
+            DateTimeOffset => GetTypeRef<System.DateTimeOffset>(),
+            NullableDateTimeOffset => GetTypeRef<System.DateTimeOffset?>(),
+            Guid => GetTypeRef<System.Guid>(),
+            NullableGuid => GetTypeRef<System.Guid?>(),
+            Timespan => GetTypeRef<System.TimeSpan>(),
+            NullableTimespan => GetTypeRef<System.TimeSpan?>(),
+            BigInt => GetTypeRef<System.Numerics.BigInteger>(),
+            NullableBigInt => GetTypeRef<System.Numerics.BigInteger?>(),
             _ => throw new System.NotImplementedException("missing handler for " + bestType),
         };
 
@@ -93,8 +93,8 @@ namespace Overby.LINQPad.FileDriver
             _ => throw new System.NotImplementedException("missing parser for " + bestType),
         };
 
-        internal static string ToLiteral<T>(this T input) => Memoizer.Instance.Get(new { input }, () =>
-            new CodePrimitiveExpression(input).GenCode());
+        internal static string ToLiteral<T>(this T input) => Memoizer.Instance.Get(new { input },
+            () => new CodePrimitiveExpression(input).GenCode());
 
         internal static string GenCode(this CodeExpression expr)
         {

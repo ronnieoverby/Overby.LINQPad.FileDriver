@@ -63,8 +63,8 @@ namespace Overby.LINQPad.FileDriver
             ExplorerItem VisitFile(FileInfo file)
             {
                 var relativePath = root.GetRelativePathTo(file);
-                var codeGenerator = CreateCodeGenerator(file);
-                var newHash = new Lazy<byte[]>(() => file.ComputeHash());
+                var codeGenerator = CreateCodeGenerator(file);                
+                var newFileHash = new Lazy<byte[]>(() => file.ComputeHash());
 
                 if (codeGenerator == null)
                 {
@@ -85,16 +85,17 @@ namespace Overby.LINQPad.FileDriver
                 }
 
                 var fileConfig = FindFileConfigByPath(relativePath);
+                var newConfigHash = new Lazy<byte[]>(() => ConfigHasher.HashConfig(fileConfig));
 
                 if (fileConfig?.Ignore == true || fileConfig is IgnoredFileConfig)
                     // ignored
                     return null;
 
                 var isNewFile = fileConfig == null;
-                if (isNewFile || HasFileChanged())
+                if (isNewFile || HasFileChanged() || HasConfigChanged())
                 {
                     // known hash?
-                    var similarFileConfig = FindFileConfigByHash(newHash.Value);
+                    var similarFileConfig = FindFileConfigByHash(newFileHash.Value);
                     if (similarFileConfig != null)
                     {
                         // copy similar config
@@ -115,8 +116,10 @@ namespace Overby.LINQPad.FileDriver
                 fileConfig.LastLength = file.Length;
                 fileConfig.LastWriteTimeUtc = file.LastWriteTimeUtc;
 
-                if (fileConfig.LastHash is null || fileConfig.LastHash.Length == 0 || newHash.IsValueCreated)
-                    fileConfig.LastHash = newHash.Value;
+                if (fileConfig.FileHash is null || fileConfig.FileHash.Length == 0 || newFileHash.IsValueCreated)
+                    fileConfig.FileHash = newFileHash.Value;
+
+                fileConfig.ConfigHash = newConfigHash.Value;
 
                 return new ExplorerItem(file.Name, ExplorerItemKind.QueryableObject, ExplorerIcon.Table)
                 {
@@ -124,7 +127,10 @@ namespace Overby.LINQPad.FileDriver
                     ToolTipText = file.FullName,
                     DragText = file.GetNameSpace(root, skip: 1),
                     Tag = new FileTag(file, fileConfig, codeGenerator),
-                };              
+                };
+
+                bool HasConfigChanged() => 
+                    fileConfig.ConfigHash == null || !fileConfig.ConfigHash.SequenceEqual(newConfigHash.Value);
 
                 bool HasFileChanged()
                 {
@@ -133,8 +139,8 @@ namespace Overby.LINQPad.FileDriver
 
                     if (fileWasUpdated)
                     {
-                        var lastHash = fileConfig.LastHash ?? new byte[0];
-                        return !lastHash.SequenceEqual(newHash.Value); // hash changed?
+                        var lastHash = fileConfig.FileHash ?? new byte[0];
+                        return !lastHash.SequenceEqual(newFileHash.Value); // hash changed?
                     }
 
                     return false;
@@ -151,7 +157,7 @@ namespace Overby.LINQPad.FileDriver
             {
                 lock (mutex)
                     return rootConfig.Files?
-                        .Where(fc => fc.LastHash?.SequenceEqual(hash) == true)
+                        .Where(fc => fc.FileHash?.SequenceEqual(hash) == true)
                         .OrderByDescending(fc => fc.LastWriteTimeUtc)
                         .FirstOrDefault();
             }
