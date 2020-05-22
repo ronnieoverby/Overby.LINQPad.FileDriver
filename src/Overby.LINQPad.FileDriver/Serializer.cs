@@ -19,8 +19,13 @@ namespace Overby.LINQPad.FileDriver
 
         public static void Save<T>(string filePath, T value)
         {
-            using var writer = new StreamWriter(filePath);
+            // less-simpler implementation to deal with hidden files/permissions
+
+            using var stream = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Write);
+            using var writer = new StreamWriter(stream);
             Serialize(writer, value);
+            writer.Flush();
+            stream.SetLength(stream.Position);
         }
 
         public static T Load<T>(string filePath)

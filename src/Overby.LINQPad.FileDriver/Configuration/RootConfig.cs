@@ -24,10 +24,15 @@ namespace Overby.LINQPad.FileDriver.Configuration
             Files = Files
                 .OrderBy(x => Path.GetFileName( x.RelativePath))
                 .ThenBy(x=> x.RelativePath.Length)
-                
-                
                 .ToList();
-            Serializer.Save(GetSaveFile(root).FullName, this);
+
+            var saveFile = GetSaveFile(root);
+
+            var newSaveFile = !File.Exists(saveFile.FullName);
+            Serializer.Save(saveFile.FullName, this);
+
+            if (newSaveFile)
+                saveFile.Attributes |= FileAttributes.Hidden;
         }
 
         public static RootConfig LoadRootConfig(DirectoryInfo root)
