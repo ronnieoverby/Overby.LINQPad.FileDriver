@@ -166,9 +166,9 @@ using(var {reader} = new System.IO.StreamReader({ReaderFilePathVariableName}))
 
                 return $"bool ParseBool(string value) => {predicates};";
 
-                string GetPredicate(string ns) => csvConfig.NullStrings.IgnoreCase
-                        ? $"value.Equals({ns.ToLiteral()}, System.StringComparison.OrdinalIgnoreCase)"
-                        : $"value == {ns.ToLiteral()}";
+                string GetPredicate(string s) => csvConfig.TrueStrings.IgnoreCase
+                        ? $"value.Equals({s.ToLiteral()}, System.StringComparison.OrdinalIgnoreCase)"
+                        : $"value == {s.ToLiteral()}";
             }
 
             void SetPropertyExplorerItems()
