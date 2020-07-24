@@ -23,9 +23,9 @@ namespace Overby.LINQPad.FileDriver.Configuration
         public HashSet<string> GetHashSet() =>
             new HashSet<string>(Values, IgnoreCase ? OrdinalIgnoreCase : Ordinal);
 
-        public static StringValues DefaultTrueStrings => new StringValues(true, "true", "1");
-        public static StringValues DefaultFalseStrings => new StringValues(true, "false", "0");
-        public static StringValues DefaultNullStrings => new StringValues(false, "");
+        public static StringValues DefaultTrueStrings => new StringValues(true, "true");
+        public static StringValues DefaultFalseStrings => new StringValues(true, "false");
+        public static StringValues DefaultNullStrings => new StringValues(true, "", "null");
 
         public void WriteToConfigHash(Action<object> write)
         {

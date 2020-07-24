@@ -45,33 +45,33 @@ namespace Tests
         }
 
         [Test]
-        public void Byte_Empty_NullableBool()
+        public void Byte_Empty_NullableByte()
         {
-            AssertBestType(NullableBool, 1, "");
+            AssertBestType(NullableByte, 1, "");
         }
 
         [Test]
-        public void One_Bool()
+        public void One_Byte()
         {
-            AssertBestType(Bool, 1);
+            AssertBestType(Byte, 1);
         }
 
         [Test]
-        public void Zero_Bool()
+        public void Zero_Byte()
         {
-            AssertBestType(Bool, 0);
+            AssertBestType(Byte, 0);
         }
 
         [Test]
-        public void One_Zero_Bool()
+        public void One_Zero_Byte()
         {
-            AssertBestType(Bool, 1, 0);
+            AssertBestType(Byte, 1, 0);
         }
 
         [Test]
-        public void One_Zero_Empty_NullableBool()
+        public void One_Zero_Empty_NullableByte()
         {
-            AssertBestType(NullableBool, 1, 0, "");
+            AssertBestType(NullableByte, 1, 0, "");
         }
 
         [Test]
@@ -254,17 +254,6 @@ namespace Tests
         public void MixedUp1()
         {
             AssertBestType(String, System.Guid.NewGuid(), 1, -1, 0, true, false, System.DateTime.Now);
-        }
-
-        [Test]
-        public void MixedBools()
-        {
-            AssertBestType(Bool, 1, true);
-            AssertBestType(Bool, 0, false);
-            AssertBestType(Bool, 1, true, 0, false);
-            AssertBestType(Bool, 0, true);
-            AssertBestType(Bool, 1, false);
-            AssertBestType(NullableBool, 1, false, " ");
         }
 
         #region Test Stuff

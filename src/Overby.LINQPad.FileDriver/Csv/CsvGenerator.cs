@@ -147,6 +147,7 @@ using(var {reader} = new System.IO.StreamReader({ReaderFilePathVariableName}))
                 var predicates = string.Join(" || ",
                     csvConfig.NullStrings.Values.Select(GetPredicate));
 
+
                 return $"bool IsNull(string value) => {predicates};";
 
                 string GetPredicate(string nul) => csvConfig.NullStrings.IgnoreCase
@@ -159,7 +160,9 @@ using(var {reader} = new System.IO.StreamReader({ReaderFilePathVariableName}))
                 // I don't think there's a point in comparing the false strings;
                 // They were only useful for identifying if the type was boolean or not
 
-                var trueStrings = csvConfig.TrueStrings ?? StringValues.DefaultTrueStrings;
+                var trueStrings = csvConfig.TrueStrings?.Values?.Length > 0
+                        ? csvConfig.TrueStrings
+                        : StringValues.DefaultTrueStrings;
 
                 var predicates = string.Join(" || ",
                     csvConfig.TrueStrings.Values.Select(GetPredicate));

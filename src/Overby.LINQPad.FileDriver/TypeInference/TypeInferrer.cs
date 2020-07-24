@@ -33,6 +33,8 @@ namespace Overby.LINQPad.FileDriver.TypeInference
             IEnumerable<IEnumerable<(TKey key, string value)>> sequence,
             Options options = null)
         {
+
+            
             options ??= new Options();
 
             var parsedValues = new Dictionary<TKey, HashSet<ParsedValue>>();
@@ -220,12 +222,6 @@ namespace Overby.LINQPad.FileDriver.TypeInference
 
             BestType best;
 
-            // bool
-            if (WidestTypeMapAll(out best,
-                    Bool, // all
-                    Bool, One, Zero))
-                return best;
-
             // numerics
             if (WidestTypeMapped(out best,
                     new[] { Double, Decimal, BigInt, Int64, Int32, Int16, Byte, One, Zero },
@@ -291,9 +287,9 @@ namespace Overby.LINQPad.FileDriver.TypeInference
                 Int32 => nullable ? BestType.NullableInt32 : BestType.Int32,
                 Int16 => nullable ? BestType.NullableInt16 : BestType.Int16,
                 Byte => nullable ? BestType.NullableByte : BestType.Byte,
+                One => nullable ? BestType.NullableByte : BestType.Byte,
+                Zero => nullable ? BestType.NullableByte: BestType.Byte,
 
-                One => nullable ? BestType.NullableBool : BestType.Bool,
-                Zero => nullable ? BestType.NullableBool : BestType.Bool,
                 Bool => nullable ? BestType.NullableBool : BestType.Bool,
 
                 DateTime => nullable ? BestType.NullableDateTime : BestType.DateTime,
