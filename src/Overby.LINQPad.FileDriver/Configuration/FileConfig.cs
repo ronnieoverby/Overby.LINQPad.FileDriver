@@ -19,7 +19,9 @@ namespace Overby.LINQPad.FileDriver.Configuration
         public byte[] ConfigHash { get; set; }
 
         public virtual List<ExplorerItem> GetFileChildItems() => new List<ExplorerItem>();
-
+        public abstract object GetUserConfig();
+        public abstract Type GetUserConfigType();
         public abstract void HashConfigValues(Action<object> write);
+        public abstract void UpdateFromUserConfig(object userConfig);
     }
 }

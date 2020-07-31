@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Overby.LINQPad.FileDriver.Csv
 {
-    class CsvConfig : FileConfig
+    public class CsvConfig : FileConfig
     {
         public char Delimiter { get; set; } = ',';
 
@@ -34,6 +34,42 @@ namespace Overby.LINQPad.FileDriver.Csv
             TrueStrings?.WriteToConfigHash(write);
             FalseStrings?.WriteToConfigHash(write);
             NullStrings?.WriteToConfigHash(write);
+        }
+
+        public override Type GetUserConfigType() => typeof(CsvUserConfig);
+
+        public override object GetUserConfig() =>
+            new CsvUserConfig
+            {
+                Delimiter = Delimiter,
+                Header = Header,
+                TextQualifier = TextQualifier,
+                TrueStrings = TrueStrings,
+                FalseStrings = FalseStrings,
+                NullStrings = NullStrings,
+                BestTypes = BestTypes,
+                Ignore = Ignore
+            };
+
+        public override void UpdateFromUserConfig(object userConfig)
+        {
+            var cfg = (CsvUserConfig)userConfig;
+            Ignore = cfg.Ignore;
+            Delimiter = cfg.Delimiter;
+            Header = cfg.Header;
+            TextQualifier = cfg.TextQualifier;
+
+            if (cfg.TrueStrings != null)
+                TrueStrings = cfg.TrueStrings;
+
+            if (cfg.FalseStrings != null)
+                FalseStrings = cfg.FalseStrings;
+
+            if (cfg.NullStrings != null)
+                NullStrings = cfg.NullStrings;
+
+            if (cfg.BestTypes != null)
+                BestTypes = cfg.BestTypes;
         }
 
         [JsonIgnore]

@@ -45,5 +45,8 @@ namespace Overby.LINQPad.FileDriver.Configuration
 
         private static FileInfo GetSaveFile(DirectoryInfo folder) =>
             folder.GetFile(FileName);
+
+        public IFileConfig GetFileConfig(string relativePath) =>
+            Files.Single(x => x.RelativePath == relativePath);
     }
 }

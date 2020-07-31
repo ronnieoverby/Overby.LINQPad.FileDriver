@@ -1,3 +1,4 @@
+using LINQPad;
 using LINQPad.Extensibility.DataContext;
 using Overby.Extensions.Text;
 using Overby.LINQPad.FileDriver.Configuration;
@@ -18,11 +19,13 @@ namespace Overby.LINQPad.FileDriver
         static DynamicDriver()
         {
             // Uncomment the following code to attach to Visual Studio's debugger when an exception is thrown:
+#if DEBUG    
             AppDomain.CurrentDomain.FirstChanceException += (sender, args) =>
             {
                 if (args.Exception.StackTrace.Contains("Overby.LINQPad.FileDriver"))
                     Debugger.Launch();
             };
+#endif
         }
 
         public override string Name => "Overby File Driver";
@@ -34,6 +37,9 @@ namespace Overby.LINQPad.FileDriver
 
         public override bool ShowConnectionDialog(IConnectionInfo cxInfo, ConnectionDialogOptions dialogOptions) =>
             new ConnectionDialog(cxInfo).ShowDialog() == true;
+
+
+
 
         public override List<ExplorerItem> GetSchemaAndBuildAssembly(IConnectionInfo cxInfo, AssemblyName assemblyToBuild, ref string nameSpace, ref string typeName)
         {
@@ -48,7 +54,7 @@ namespace Overby.LINQPad.FileDriver
             var rootConfig = RootConfig.LoadRootConfig(root);
             var schema = FileVisitor.VisitRoot(root, rootConfig);
             rootConfig.Save(root);
-            var cSharpSourceCode = GenerateCode(nameSpace, schema, root);
+            var cSharpSourceCode = GenerateCode(ref nameSpace, ref typeName, schema, root);
 
 #if DEBUG
             File.WriteAllText(root.Parent.GetFile("the source codez.cs").FullName, cSharpSourceCode);
@@ -59,12 +65,16 @@ namespace Overby.LINQPad.FileDriver
             return schema;
         }
 
-        private string GenerateCode(string nameSpace, List<ExplorerItem> schema, DirectoryInfo root)
+
+        private string GenerateCode(ref string nameSpace, ref string fullContextTypeName, List<ExplorerItem> schema, DirectoryInfo root)
         {
             var writer = new StringWriter();
 
             using (writer.NameSpace(nameSpace))
             {
+
+             
+
                 // generate schema types
                 using (writer.NameSpace(SchemaNameSpace))
                     GenSchemaTypes(schema, writer, root);
@@ -108,32 +118,49 @@ namespace Overby.LINQPad.FileDriver
                 foreach (var (item, fileTag) in fileItems)
                 {
                     var fileConfig = fileTag.FileConfig;
-                    var (WriteRecordMembers, WriteReaderImplementation) =
+                    var (WriteRecordMembers, WriteEnumeratorImplementation) =
                         fileTag.CodeGenerator.GetCodeGenerators(fileConfig);
 
                     using (writer.Region(fileTag.File))
                     using (writer.NameSpace(fileTag.File.GetNameIdentifier()))
                     {
                         // record class
-                        writer.MemberComment("Record type for" + fileTag.File.FullName);
+                        writer.MemberComment("Record type for " + fileTag.File.FullName);
                         using (writer.Brackets("public class " + RecordClassName))
                             WriteRecordMembers(writer);
 
                         // reader class
                         writer.MemberComment("Reader for " + fileTag.File.FullName);
-                        using (writer.Brackets($"public static class " + ReaderClassName))
+                        using (writer.Brackets($"public class {ReaderClassName} : {IEnumerable(RecordClassName)}"))
                         {
-                            // file path constant
+                            // file path property
                             writer.MemberComment("Path to " + fileTag.File.FullName);
                             writer.WriteLine(
-                                $"public const string {ReaderFilePathConstName} = {fileTag.File.FullName.ToLiteral()};");
+                                $"public string {ReaderFilePathPropertyName} =>{fileTag.File.FullName.ToLiteral()};");
 
-                            // Read method
+                            // pass file config
+                            var userConfigType = CodeGen.GetTypeRef(fileConfig.GetUserConfigType());
+                            writer.MemberComment("config comment");
+                            using (writer.Brackets($"public void Configure(System.Action<{userConfigType}> configure)"))
+                            {
+                                // get config 
+                                writer.WriteLine($@"var fileConfig =
+    Overby.LINQPad.FileDriver.Configuration.RuntimeConfiguration
+        .GetRootConfig({root.FullName.ToLiteral()})
+        .GetFileConfig({fileConfig.RelativePath.ToLiteral()});
+
+    var userConfig = ({userConfigType})fileConfig.GetUserConfig();
+    configure(userConfig);
+    fileConfig.UpdateFromUserConfig(userConfig);");
+                            }
+
+                            // GetEnumerator methods
                             writer.MemberComment("Reads records from " + fileTag.File.FullName);
                             using (writer.Brackets(
-                                $"public static {IEnumerable(RecordClassName)} {ReaderReadMethodName}" +
-                                $"(string {ReaderFilePathVariableName} = {ReaderFilePathConstName})"))
-                                WriteReaderImplementation(writer);
+                                $"public System.Collections.Generic.IEnumerator<{RecordClassName}> GetEnumerator()"))
+                                WriteEnumeratorImplementation(writer);
+
+                            writer.WriteLine($"System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();");
                         }
                     }
                 }
@@ -148,11 +175,12 @@ namespace Overby.LINQPad.FileDriver
                         var fileIdentifier = fileTag.File.GetNameIdentifier();
                         var alias = fileTag.File.FullName.UniqueIdentifier();
                         var recordType = $"{alias}.{RecordClassName}";
-                        var readCall = $"{alias}.{ReaderClassName}.{ReaderReadMethodName}()";
+                        var memberType = $"{alias}.{ReaderClassName}";
+                        var readCall = $"new {memberType}()";
 
                         writer.MemberComment(fileTag.File.FullName);
                         writer.WriteLine(
-                            $"public {IEnumerable(recordType)} {fileIdentifier} => {readCall};");
+                            $"public {memberType} {fileIdentifier} => {readCall};");
                     }
 
                 using (writer.Region("Sub Folder Members"))
@@ -210,6 +238,42 @@ namespace Overby.LINQPad.FileDriver
 
             if (compileResult.Errors.Length > 0)
                 throw new Exception("Cannot compile typed context: " + compileResult.Errors[0]);
+        }
+
+        public override void OnQueryFinishing(IConnectionInfo cxInfo, object context, QueryExecutionManager executionManager)
+        {
+            RefreshConnectionIfNeeded(context, cxInfo);
+
+            base.OnQueryFinishing(cxInfo, context, executionManager);
+        }
+
+        void RefreshConnectionIfNeeded(dynamic context, IConnectionInfo cxInfo)
+        {
+            // using dynamic for the context
+            // because it's generated at runtime
+
+            // using reflection for the call to cxInfo.ForceRefresh()
+            // because ForceRefresh() is new and older
+            // version of linqpad won't have the method
+            // and ForceRefresh() is a default interface implementation
+            // which cannot be called by the DLR
+
+            if (RuntimeConfiguration.Changes)
+            {
+                RuntimeConfiguration.SaveRootConfig();
+
+#if NETCORE
+                if (LINQPadVersion >= new Version(6, 9, 2))
+                    cxInfo.ForceRefresh();
+                else
+                    DisplayRefreshMessage();
+#else
+            DisplayRefreshMessage();
+#endif
+
+                static void DisplayRefreshMessage() =>
+                     "Refresh the connection to apply changes.".Dump();
+            }
         }
     }
 }

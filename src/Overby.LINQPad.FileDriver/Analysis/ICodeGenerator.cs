@@ -9,7 +9,7 @@ namespace Overby.LINQPad.FileDriver.Analysis
         IFileConfig UpdateFileConfig(FileInfo file, IFileConfig previousConfig);
 
         (Action<TextWriter> WriteRecordMembers,
-         Action<TextWriter> WriteReaderImplementation)
+         Action<TextWriter> WriteEnumeratorImplementation)
             GetCodeGenerators(IFileConfig fileConfig);
     }
 }

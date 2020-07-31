@@ -3,11 +3,10 @@
     public static class CodeGenConstants
     {
         #region Symbols
-        public const string ReaderFilePathVariableName = "filePath";
         public const string RecordClassName = "Record";
         public const string ReaderClassName = "Reader";
         public const string ReaderReadMethodName = "Read";
-        public const string ReaderFilePathConstName = "FilePath";
+        public const string ReaderFilePathPropertyName = "FilePath";
         public const string SchemaNameSpace = "Schema";
         public const string SchemaClassName = "Schema";
 

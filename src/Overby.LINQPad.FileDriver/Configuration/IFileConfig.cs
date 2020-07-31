@@ -21,5 +21,9 @@ namespace Overby.LINQPad.FileDriver.Configuration
         byte[] ConfigHash { get; set; }
 
         void HashConfigValues(Action<object> write);
+
+        Type GetUserConfigType();
+        object GetUserConfig();
+        void UpdateFromUserConfig(object userConfig);
     }
 }

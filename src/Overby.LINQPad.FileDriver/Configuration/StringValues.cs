@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using static System.StringComparer;
 
 namespace Overby.LINQPad.FileDriver.Configuration
 {
-    class StringValues
+    public class StringValues
     {
-        public string[] Values { get; set; }
+        public List<string> Values { get; set; }
         public bool IgnoreCase { get; set; }
 
         public StringValues()
@@ -17,7 +18,7 @@ namespace Overby.LINQPad.FileDriver.Configuration
         public StringValues(bool ignoreCase, params string[] values)
         {
             IgnoreCase = ignoreCase;
-            Values = values;
+            Values = values.ToList();
         }
 
         public HashSet<string> GetHashSet() =>

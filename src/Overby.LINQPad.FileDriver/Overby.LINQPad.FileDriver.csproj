@@ -30,7 +30,14 @@ hidden config files</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="LINQPad.Reference" Version="1.*" />
+	  <Compile Remove="linqpad-samples\**" />
+	  <EmbeddedResource Remove="linqpad-samples\**" />
+	  <None Remove="linqpad-samples\**" />
+	  <Page Remove="linqpad-samples\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="LINQPad.Reference" Version="1.2.0-beta" />
 		<PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
 		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
 		<PackageReference Include="Overby.Extensions.Text" Version="1.0.0-beta2" />
@@ -53,13 +60,11 @@ hidden config files</PackageReleaseNotes>
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="linqpad-samples\\*.*" />
 		<None Remove="create lpx.linq" />
 		<None Remove="Directory.Build.props" />
 		<None Remove="Overby.LINQPad.FileDriver.lpx" />
 		<None Remove="Overby.LINQPad.FileDriver.lpx6" />
 		<None Remove="README.md" />
-		<Folder Include="linqpad-samples\\" />
 	</ItemGroup>
 
   <Target Name="PostBuild1" AfterTargets="PostBuildEvent" Condition="'$(TargetFramework)' == 'netcoreapp3.0'">

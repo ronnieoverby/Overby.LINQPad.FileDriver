@@ -88,7 +88,7 @@ namespace Overby.LINQPad.FileDriver.Csv
         }
 
         public (Action<TextWriter> WriteRecordMembers,
-            Action<TextWriter> WriteReaderImplementation)
+            Action<TextWriter> WriteEnumeratorImplementation)
             GetCodeGenerators(IFileConfig fileConfig)
         {
             var csvConfig = (CsvConfig)fileConfig;
@@ -116,13 +116,15 @@ namespace Overby.LINQPad.FileDriver.Csv
 
             SetPropertyExplorerItems();
 
-            return (GenerateRecordMembers, GenerateReaderImplementation);
+            return (GenerateRecordMembers, GenerateEnumeratorImplementation);
+
+          
 
             void GenerateRecordMembers(TextWriter writer) =>
                 writer.WriteLines(recordProperties.Select(x => x.propDef));
 
-            void GenerateReaderImplementation(TextWriter writer) => writer.WriteLine($@"
-using(var {reader} = new System.IO.StreamReader({ReaderFilePathVariableName}))
+            void GenerateEnumeratorImplementation(TextWriter writer) => writer.WriteLine($@"
+using(var {reader} = new System.IO.StreamReader({ReaderFilePathPropertyName}))
 {{
     var {csvRecords} = Overby.Extensions.Text.CsvParsingExtensions
         .ReadCsvWithHeader({reader}, delimiter: {csvConfig.Delimiter.ToLiteral()});
@@ -160,7 +162,7 @@ using(var {reader} = new System.IO.StreamReader({ReaderFilePathVariableName}))
                 // I don't think there's a point in comparing the false strings;
                 // They were only useful for identifying if the type was boolean or not
 
-                var trueStrings = csvConfig.TrueStrings?.Values?.Length > 0
+                var trueStrings = csvConfig.TrueStrings?.Values?.Count > 0
                         ? csvConfig.TrueStrings
                         : StringValues.DefaultTrueStrings;
 

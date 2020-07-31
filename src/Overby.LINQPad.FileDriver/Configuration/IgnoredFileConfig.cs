@@ -8,9 +8,23 @@ namespace Overby.LINQPad.FileDriver.Configuration
     /// </summary>
     class IgnoredFileConfig : FileConfig
     {
+        public override object GetUserConfig()
+        {
+            return this;
+        }
+
+        public override Type GetUserConfigType()
+        {
+            return GetType();
+        }
+
         public override void HashConfigValues(Action<object> write)
         {
 
+        }
+
+        public override void UpdateFromUserConfig(object userConfig)
+        {
         }
     }
 }
