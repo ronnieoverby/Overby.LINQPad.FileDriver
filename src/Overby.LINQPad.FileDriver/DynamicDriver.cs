@@ -73,7 +73,7 @@ namespace Overby.LINQPad.FileDriver
             using (writer.NameSpace(nameSpace))
             {
 
-             
+
 
                 // generate schema types
                 using (writer.NameSpace(SchemaNameSpace))
@@ -138,10 +138,19 @@ namespace Overby.LINQPad.FileDriver
                             writer.WriteLine(
                                 $"public string {ReaderFilePathPropertyName} =>{fileTag.File.FullName.ToLiteral()};");
 
-                            // pass file config
+
+                            // Configure method
                             var userConfigType = CodeGen.GetTypeRef(fileConfig.GetUserConfigType());
-                            writer.MemberComment("config comment");
-                            using (writer.Brackets($"public void Configure(System.Action<{userConfigType}> configure)"))
+
+                            writer.MemberComment("Configuration Type");
+                            using (writer.Brackets("public class Configuration"))
+                                writer.WriteLine($@"
+                                    public {RecordClassName} Record {{ get; }} = new {RecordClassName}();
+                                    public {userConfigType} Config {{ get; }}
+                                    public Configuration({userConfigType} config) => Config = config;");
+
+                            writer.MemberComment("Configuration Method");
+                            using (writer.Brackets($"public void Configure(System.Action<Configuration> configure)"))
                             {
                                 // get config 
                                 writer.WriteLine($@"var fileConfig =
@@ -150,7 +159,7 @@ namespace Overby.LINQPad.FileDriver
         .GetFileConfig({fileConfig.RelativePath.ToLiteral()});
 
     var userConfig = ({userConfigType})fileConfig.GetUserConfig();
-    configure(userConfig);
+    configure(new Configuration(userConfig));
     fileConfig.UpdateFromUserConfig(userConfig);");
                             }
 

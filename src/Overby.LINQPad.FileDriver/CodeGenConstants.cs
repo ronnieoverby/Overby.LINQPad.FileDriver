@@ -5,7 +5,6 @@
         #region Symbols
         public const string RecordClassName = "Record";
         public const string ReaderClassName = "Reader";
-        public const string ReaderReadMethodName = "Read";
         public const string ReaderFilePathPropertyName = "FilePath";
         public const string SchemaNameSpace = "Schema";
         public const string SchemaClassName = "Schema";
