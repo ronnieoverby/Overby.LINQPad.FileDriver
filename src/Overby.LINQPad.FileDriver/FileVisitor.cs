@@ -92,7 +92,7 @@ namespace Overby.LINQPad.FileDriver
                     return null;
 
                 var isNewFile = fileConfig == null;
-                if (isNewFile || HasFileChanged() || HasConfigChanged())
+                if (isNewFile || HasFileChanged())
                 {
                     // known hash?
                     var similarFileConfig = FindFileConfigByHash(newFileHash.Value);
@@ -110,7 +110,14 @@ namespace Overby.LINQPad.FileDriver
                     lock (mutex)
                         rootConfig.AddOrReplace(fileConfig);
                 }
+                else if (HasConfigChanged())
+                {
+                    fileConfig = codeGenerator.UpdateFileConfig(file, fileConfig);
 
+                    lock (mutex)
+                        rootConfig.AddOrReplace(fileConfig);
+                }
+            
                 // update file's stamps
                 fileConfig.RelativePath = relativePath;
                 fileConfig.LastLength = file.Length;
