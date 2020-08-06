@@ -174,6 +174,12 @@ namespace Overby.LINQPad.FileDriver
         public static void WriteDelimiter(this BinaryWriter writer) =>
             writer.Write("a25082f6-01ae-4a1b-bca6-b4656bedfd50");
 
+        public static Dictionary<string, T> WithIdentifierComparer<T>(this IDictionary<string, T> sourceDictionary) =>
+            sourceDictionary.ChangeComparer(new IdentifierComparer());
+
+        public static Dictionary<K, V> ChangeComparer<K, V>(this IDictionary<K, V> dict, IEqualityComparer<K> comparer) =>
+            dict.ToDictionary(x => x.Key, x => x.Value, comparer);
+
 
 #if !NETCORE
         public static HashSet<T> ToHashSet<T>(this IEnumerable<T> sequence, IEqualityComparer<T> comparer = null) =>

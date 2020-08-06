@@ -144,7 +144,7 @@ using(var {reader} = new System.IO.StreamReader({ReaderFilePathPropertyName}))
 
             string GenerateIsNullFunction()
             {
-                var nullStrings = csvConfig.NullStrings ?? StringValues.DefaultNullStrings;
+                var nullStrings = csvConfig.NullStrings ?? ValueTokens.DefaultNullStrings;
 
                 var predicates = string.Join(" || ",
                     csvConfig.NullStrings.Values.Select(GetPredicate));
@@ -164,7 +164,7 @@ using(var {reader} = new System.IO.StreamReader({ReaderFilePathPropertyName}))
 
                 var trueStrings = csvConfig.TrueStrings?.Values?.Count > 0
                         ? csvConfig.TrueStrings
-                        : StringValues.DefaultTrueStrings;
+                        : ValueTokens.DefaultTrueStrings;
 
                 var predicates = string.Join(" || ",
                     csvConfig.TrueStrings.Values.Select(GetPredicate));

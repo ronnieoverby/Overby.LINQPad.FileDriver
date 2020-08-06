@@ -22,8 +22,8 @@ namespace Overby.LINQPad.FileDriver.Configuration
         public void Save(DirectoryInfo root)
         {
             Files = Files
-                .OrderBy(x => Path.GetFileName( x.RelativePath))
-                .ThenBy(x=> x.RelativePath.Length)
+                .OrderBy(x => Path.GetFileName(x.RelativePath))
+                .ThenBy(x => x.RelativePath.Length)
                 .ToList();
 
             var saveFile = GetSaveFile(root);
@@ -38,7 +38,11 @@ namespace Overby.LINQPad.FileDriver.Configuration
         public static RootConfig LoadRootConfig(DirectoryInfo root)
         {
             var saveFile = GetSaveFile(root);
-            RootConfig rootConfig = saveFile.Exists ? Serializer.Load<RootConfig>(saveFile.FullName) : new RootConfig();
+            var rootConfig = saveFile.Exists ? Serializer.Load<RootConfig>(saveFile.FullName) : new RootConfig();
+
+            // file found, but no config (empty file)
+            rootConfig ??= new RootConfig();
+
             rootConfig.PopulationId = Guid.NewGuid();
             return rootConfig;
         }

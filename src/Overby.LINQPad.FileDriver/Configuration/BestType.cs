@@ -1,4 +1,4 @@
-﻿namespace Overby.LINQPad.FileDriver.TypeInference
+﻿namespace Overby.LINQPad.FileDriver.Configuration
 {
     public enum BestType
     {

@@ -25,18 +25,24 @@ namespace Overby.LINQPad.FileDriver.Configuration
             return _state.rootConfig;
         }
 
-        public static bool Changes => _state != default;
+        public static bool ConfigChanges => _state != default;
 
         public static void SaveRootConfig()
         {
             lock (_mutex)
             {
-                if (Changes)
+                if (ConfigChanges)
                 {
                     _state.rootConfig.Save(_state.rootDir);
                     _state = default;
                 }
             }
         }
+
+
+        public static bool ForceRefresh { private get; set; }
+
+        public static bool ShouldRefresh =>
+            ForceRefresh || ConfigChanges;
     }
 }

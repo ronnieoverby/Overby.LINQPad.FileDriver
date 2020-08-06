@@ -54,10 +54,12 @@ namespace Overby.LINQPad.FileDriver
             var rootConfig = RootConfig.LoadRootConfig(root);
             var schema = FileVisitor.VisitRoot(root, rootConfig);
             rootConfig.Save(root);
-            var cSharpSourceCode = GenerateCode(ref nameSpace, ref typeName, schema, root);
+            var cSharpSourceCode = GenerateCode(ref nameSpace, schema, root);
 
 #if DEBUG
-            File.WriteAllText(root.Parent.GetFile("the source codez.cs").FullName, cSharpSourceCode);
+            File.WriteAllText(
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "the source codez.cs"),
+                cSharpSourceCode);
 #endif
 
             Compile(cSharpSourceCode, assemblyToBuild.CodeBase);
@@ -66,7 +68,7 @@ namespace Overby.LINQPad.FileDriver
         }
 
 
-        private string GenerateCode(ref string nameSpace, ref string fullContextTypeName, List<ExplorerItem> schema, DirectoryInfo root)
+        private string GenerateCode(ref string nameSpace, List<ExplorerItem> schema, DirectoryInfo root)
         {
             var writer = new StringWriter();
 
@@ -81,6 +83,14 @@ namespace Overby.LINQPad.FileDriver
             }
 
             return writer.ToString();
+        }
+        public override IEnumerable<string> GetNamespacesToAdd(IConnectionInfo cxInfo)
+        {
+            return base.GetNamespacesToAdd(cxInfo).Concat(new[]
+            {
+                "Overby.LINQPad.FileDriver.Configuration",
+            }).Distinct();
+
         }
 
         private void GenSchemaTypes(List<ExplorerItem> schema, StringWriter writer, DirectoryInfo root)
@@ -136,7 +146,8 @@ namespace Overby.LINQPad.FileDriver
                             // file path property
                             writer.MemberComment("Path to " + fileTag.File.FullName);
                             writer.WriteLine(
-                                $"public string {ReaderFilePathPropertyName} =>{fileTag.File.FullName.ToLiteral()};");
+                                $"public string {ReaderFilePathPropertyName} =>{fileTag.File.FullName.ToLiteral()};" +
+                                $"public string {ReaderFolderPathPropertyName} => {fileTag.File.DirectoryName.ToLiteral()};");
 
 
                             // Configure method
@@ -162,6 +173,17 @@ namespace Overby.LINQPad.FileDriver
     configure(new Configuration(userConfig));
     fileConfig.UpdateFromUserConfig(userConfig);");
                             }
+
+                            const string ForceRefresh = "Overby.LINQPad.FileDriver.Configuration.RuntimeConfiguration.ForceRefresh = true;";
+
+                            // rename method
+                            using (writer.Brackets("public void RenameFile(string newName)"))
+                                writer.WriteLine($@"
+                                System.IO.File.Move({ReaderFilePathPropertyName}, System.IO.Path.Combine({ReaderFolderPathPropertyName}, newName)); {ForceRefresh}");
+
+                            // delete method
+                            using (writer.Brackets("public void DeleteFile()"))
+                                writer.WriteLine($@"System.IO.File.Delete({ReaderFilePathPropertyName}); {ForceRefresh}");
 
                             // GetEnumerator methods
                             writer.MemberComment("Reads records from " + fileTag.File.FullName);
@@ -267,9 +289,10 @@ namespace Overby.LINQPad.FileDriver
             // and ForceRefresh() is a default interface implementation
             // which cannot be called by the DLR
 
-            if (RuntimeConfiguration.Changes)
+            if (RuntimeConfiguration.ShouldRefresh)
             {
-                RuntimeConfiguration.SaveRootConfig();
+                if (RuntimeConfiguration.ConfigChanges)
+                    RuntimeConfiguration.SaveRootConfig();
 
 #if NETCORE
                 if (LINQPadVersion >= new Version(6, 9, 2))
@@ -277,7 +300,7 @@ namespace Overby.LINQPad.FileDriver
                 else
                     DisplayRefreshMessage();
 #else
-            DisplayRefreshMessage();
+                DisplayRefreshMessage();
 #endif
 
                 static void DisplayRefreshMessage() =>

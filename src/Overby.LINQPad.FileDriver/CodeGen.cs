@@ -1,4 +1,4 @@
-﻿using Overby.LINQPad.FileDriver.TypeInference;
+﻿using Overby.LINQPad.FileDriver.Configuration;
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using static Overby.LINQPad.FileDriver.CodeGenConstants;
-using static Overby.LINQPad.FileDriver.TypeInference.BestType;
+using static Overby.LINQPad.FileDriver.Configuration.BestType;
 
 namespace Overby.LINQPad.FileDriver
 {
@@ -108,7 +108,6 @@ namespace Overby.LINQPad.FileDriver
 
         private static (HashSet<string> registry, object mutex) GetIdRegistry(string scope) =>
             Memoizer.Instance.Get(new { scope }, () => (new HashSet<string>(), new object()));
-
 
         internal static string ToIdentifier(this string s)
         {

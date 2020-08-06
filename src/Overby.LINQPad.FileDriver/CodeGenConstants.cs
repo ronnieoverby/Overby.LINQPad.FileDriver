@@ -6,6 +6,8 @@
         public const string RecordClassName = "Record";
         public const string ReaderClassName = "Reader";
         public const string ReaderFilePathPropertyName = "FilePath";
+        public const string ReaderFolderPathPropertyName = "FolderPath";
+        
         public const string SchemaNameSpace = "Schema";
         public const string SchemaClassName = "Schema";
 

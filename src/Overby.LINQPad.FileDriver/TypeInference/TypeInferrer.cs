@@ -1,8 +1,9 @@
-﻿using static Overby.LINQPad.FileDriver.TypeInference.ParsedValue;
+﻿using Overby.Extensions.Text;
+using Overby.LINQPad.FileDriver.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using Overby.Extensions.Text;
+using static Overby.LINQPad.FileDriver.TypeInference.ParsedValue;
 
 namespace Overby.LINQPad.FileDriver.TypeInference
 {

@@ -11,10 +11,10 @@ namespace Overby.LINQPad.FileDriver.Csv
         public char TextQualifier { get; set; }
 
         public string Header { get; set; }
-        public StringValues TrueStrings { get; internal set; }
-        public StringValues FalseStrings { get; internal set; }
-        public StringValues NullStrings { get; internal set; }
-        public Dictionary<string, BestType> BestTypes { get; internal set; }
-        public bool Ignore { get;  set; }
+        public ValueTokens TrueStrings { get; set; }
+        public ValueTokens FalseStrings { get; set; }
+        public ValueTokens NullStrings { get; set; }
+        public Dictionary<string, BestType> BestTypes { get; set; }
+        public bool Ignore { get; set; }
     }
 }

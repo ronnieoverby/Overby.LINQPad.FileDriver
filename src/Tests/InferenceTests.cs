@@ -1,8 +1,9 @@
 ﻿using NUnit.Framework;
+using Overby.LINQPad.FileDriver.Configuration;
 using Overby.LINQPad.FileDriver.TypeInference;
 using System.Collections.Generic;
 using System.Linq;
-using static Overby.LINQPad.FileDriver.TypeInference.BestType;
+using static Overby.LINQPad.FileDriver.Configuration.BestType;
 
 namespace Tests
 {

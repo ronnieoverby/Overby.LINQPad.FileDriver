@@ -5,17 +5,17 @@ using static System.StringComparer;
 
 namespace Overby.LINQPad.FileDriver.Configuration
 {
-    public class StringValues
+    public class ValueTokens
     {
         public List<string> Values { get; set; }
         public bool IgnoreCase { get; set; }
 
-        public StringValues()
+        public ValueTokens()
         {
 
         }
 
-        public StringValues(bool ignoreCase, params string[] values)
+        public ValueTokens(bool ignoreCase, params string[] values)
         {
             IgnoreCase = ignoreCase;
             Values = values.ToList();
@@ -24,9 +24,11 @@ namespace Overby.LINQPad.FileDriver.Configuration
         public HashSet<string> GetHashSet() =>
             new HashSet<string>(Values, IgnoreCase ? OrdinalIgnoreCase : Ordinal);
 
-        public static StringValues DefaultTrueStrings => new StringValues(true, "true");
-        public static StringValues DefaultFalseStrings => new StringValues(true, "false");
-        public static StringValues DefaultNullStrings => new StringValues(true, "", "null");
+        public static ValueTokens DefaultTrueStrings => new ValueTokens(true, "true");
+        public static ValueTokens DefaultFalseStrings => new ValueTokens(true, "false");
+        public static ValueTokens DefaultNullStrings => new ValueTokens(true, "", "null");
+
+        public static implicit operator ValueTokens(string[] strings) => new ValueTokens(false, strings);
 
         public void WriteToConfigHash(Action<object> write)
         {

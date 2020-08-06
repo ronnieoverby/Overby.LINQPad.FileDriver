@@ -4,6 +4,7 @@ using Overby.LINQPad.FileDriver.Configuration;
 using Overby.LINQPad.FileDriver.TypeInference;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Overby.LINQPad.FileDriver.Csv
 {
@@ -18,13 +19,14 @@ namespace Overby.LINQPad.FileDriver.Csv
         /// </summary>
         public string Header { get; set; }
 
-        public StringValues TrueStrings { get; set; } = StringValues.DefaultTrueStrings;
-        public StringValues FalseStrings { get; set; } = StringValues.DefaultFalseStrings;
-        public StringValues NullStrings { get; set; } = StringValues.DefaultNullStrings;
+        public ValueTokens TrueStrings { get; set; } = ValueTokens.DefaultTrueStrings;
+        public ValueTokens FalseStrings { get; set; } = ValueTokens.DefaultFalseStrings;
+        public ValueTokens NullStrings { get; set; } = ValueTokens.DefaultNullStrings;
 
         public Dictionary<string, BestType> BestTypes { get; set; }
 
         public override List<ExplorerItem> GetFileChildItems() => PropertyItems;
+        
 
         public override void HashConfigValues(Action<object> write)
         {
@@ -47,7 +49,7 @@ namespace Overby.LINQPad.FileDriver.Csv
                 TrueStrings = TrueStrings,
                 FalseStrings = FalseStrings,
                 NullStrings = NullStrings,
-                BestTypes = BestTypes,
+                BestTypes = BestTypes.WithIdentifierComparer(),
                 Ignore = Ignore
             };
 
@@ -67,6 +69,8 @@ namespace Overby.LINQPad.FileDriver.Csv
 
             if (cfg.NullStrings != null)
                 NullStrings = cfg.NullStrings;
+
+            Debugger.Launch();
 
             if (cfg.BestTypes != null)
                 BestTypes = cfg.BestTypes;
