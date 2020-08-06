@@ -145,9 +145,9 @@ namespace Overby.LINQPad.FileDriver
                         {
                             // file path property
                             writer.MemberComment("Path to " + fileTag.File.FullName);
-                            writer.WriteLine(
-                                $"public string {ReaderFilePathPropertyName} =>{fileTag.File.FullName.ToLiteral()};" +
-                                $"public string {ReaderFolderPathPropertyName} => {fileTag.File.DirectoryName.ToLiteral()};");
+                            writer.WriteLine(@$"
+                                public string {ReaderFilePathPropertyName} => {fileTag.File.FullName.ToLiteral()};
+                                public string {ReaderFolderPathPropertyName} => {fileTag.File.DirectoryName.ToLiteral()};");
 
 
                             // Configure method
@@ -179,11 +179,13 @@ namespace Overby.LINQPad.FileDriver
                             // rename method
                             using (writer.Brackets("public void RenameFile(string newName)"))
                                 writer.WriteLine($@"
-                                System.IO.File.Move({ReaderFilePathPropertyName}, System.IO.Path.Combine({ReaderFolderPathPropertyName}, newName)); {ForceRefresh}");
+                                System.IO.File.Move({ReaderFilePathPropertyName}, System.IO.Path.Combine({ReaderFolderPathPropertyName}, newName));
+                                {ForceRefresh}");
 
                             // delete method
                             using (writer.Brackets("public void DeleteFile()"))
-                                writer.WriteLine($@"System.IO.File.Delete({ReaderFilePathPropertyName}); {ForceRefresh}");
+                                writer.WriteLine($@"System.IO.File.Delete({ReaderFilePathPropertyName});
+                                {ForceRefresh}");
 
                             // GetEnumerator methods
                             writer.MemberComment("Reads records from " + fileTag.File.FullName);
