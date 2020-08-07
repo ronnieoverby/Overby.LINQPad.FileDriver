@@ -149,21 +149,20 @@ namespace Overby.LINQPad.FileDriver
                                 public string {ReaderFilePathPropertyName} => {fileTag.File.FullName.ToLiteral()};
                                 public string {ReaderFolderPathPropertyName} => {fileTag.File.DirectoryName.ToLiteral()};");
 
-
-                            // Configure method
                             var userConfigType = CodeGen.GetTypeRef(fileConfig.GetUserConfigType());
 
-                            writer.MemberComment("Configuration Type");
+                            // Config Argument Type
+                            writer.MemberComment("Configuration Argument Type");
                             using (writer.Brackets("public class Configuration"))
                                 writer.WriteLine($@"
                                     public {RecordClassName} Record {{ get; }} = new {RecordClassName}();
                                     public {userConfigType} Config {{ get; }}
                                     public Configuration({userConfigType} config) => Config = config;");
 
+                            // Configure method
                             writer.MemberComment("Configuration Method");
                             using (writer.Brackets($"public void Configure(System.Action<Configuration> configure)"))
                             {
-                                // get config 
                                 writer.WriteLine($@"var fileConfig =
     Overby.LINQPad.FileDriver.Configuration.RuntimeConfiguration
         .GetRootConfig({root.FullName.ToLiteral()})
@@ -177,15 +176,28 @@ namespace Overby.LINQPad.FileDriver
                             const string ForceRefresh = "Overby.LINQPad.FileDriver.Configuration.RuntimeConfiguration.ForceRefresh = true;";
 
                             // rename method
+                            writer.MemberComment("Renames the file on disk. Triggers a refresh.");
                             using (writer.Brackets("public void RenameFile(string newName)"))
                                 writer.WriteLine($@"
                                 System.IO.File.Move({ReaderFilePathPropertyName}, System.IO.Path.Combine({ReaderFolderPathPropertyName}, newName));
                                 {ForceRefresh}");
 
                             // delete method
+                            writer.MemberComment("Deletes the file from disk. Triggers a refresh.");
                             using (writer.Brackets("public void DeleteFile()"))
                                 writer.WriteLine($@"System.IO.File.Delete({ReaderFilePathPropertyName});
                                 {ForceRefresh}");
+
+                            // reset config method
+                            writer.MemberComment("Resets the file's configuration to defaults. Requires a refresh.");
+                            using (writer.Brackets("public void ResetConfiguration()"))
+                            {
+                                // get config 
+                                writer.WriteLine($@"
+var rootConfig = Overby.LINQPad.FileDriver.Configuration.RuntimeConfiguration.GetRootConfig({root.FullName.ToLiteral()});
+var fileConfig = rootConfig.GetFileConfig({fileConfig.RelativePath.ToLiteral()});
+rootConfig.Remove(fileConfig);");
+                            }
 
                             // GetEnumerator methods
                             writer.MemberComment("Reads records from " + fileTag.File.FullName);

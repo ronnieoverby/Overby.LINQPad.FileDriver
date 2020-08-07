@@ -15,8 +15,13 @@ namespace Overby.LINQPad.FileDriver.Configuration
 
         public void AddOrReplace(IFileConfig fileConfig)
         {
-            Files.RemoveAll(x => x.RelativePath.EqualsI(fileConfig.RelativePath));
+            Remove(fileConfig);
             Files.Add(fileConfig);
+        }
+
+        public void Remove(IFileConfig fileConfig)
+        {
+            Files.RemoveAll(x => x.RelativePath.EqualsI(fileConfig.RelativePath));
         }
 
         public void Save(DirectoryInfo root)
