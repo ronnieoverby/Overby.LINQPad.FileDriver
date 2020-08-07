@@ -95,6 +95,7 @@ namespace Overby.LINQPad.FileDriver
 
         private void GenSchemaTypes(List<ExplorerItem> schema, StringWriter writer, DirectoryInfo root)
         {
+            const string ForceRefresh = "Overby.LINQPad.FileDriver.Configuration.RuntimeConfiguration.ForceRefresh = true;";
             var flatSchema = schema.Flatten().ToArray();
 
             // alias all file/folder namespaces
@@ -173,7 +174,6 @@ namespace Overby.LINQPad.FileDriver
     fileConfig.UpdateFromUserConfig(userConfig);");
                             }
 
-                            const string ForceRefresh = "Overby.LINQPad.FileDriver.Configuration.RuntimeConfiguration.ForceRefresh = true;";
 
                             // rename method
                             writer.MemberComment("Renames the file on disk. Triggers a refresh.");
@@ -240,6 +240,13 @@ rootConfig.Remove(fileConfig);");
                             $"public {schemaType} {folderId} {{ get; }} = new {schemaType}();");
                     }
                 }
+
+                using (writer.Brackets("public void DeleteFolder()"))
+                    writer.WriteLine($@"System.IO.Directory.Delete({folder.FullName.ToLiteral()}, true); {ForceRefresh}");
+
+                if (folder.Parent != null && !folder.AreSame(root))
+                    using (writer.Brackets("public void RenameFolder(string newName)"))
+                        writer.WriteLine($@"System.IO.Directory.Move({folder.FullName.ToLiteral()}, System.IO.Path.Combine({folder.Parent.FullName.ToLiteral()}, newName)); {ForceRefresh}");
 
                 // best place to set file children explorer items                
                 // all code gen has taken place, the file config is stable
