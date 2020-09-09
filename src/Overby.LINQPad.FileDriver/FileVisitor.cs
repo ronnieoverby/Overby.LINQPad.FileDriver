@@ -62,6 +62,21 @@ namespace Overby.LINQPad.FileDriver
 
             ExplorerItem VisitFile(FileInfo file)
             {
+                using var handle = GetHandle();
+                if (handle == null) return null;
+
+                IDisposable GetHandle()
+                {
+                    try
+                    {
+                        return File.Open(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    }
+                    catch 
+                    {
+                        return null; 
+                    }
+                }
+
                 var relativePath = root.GetRelativePathTo(file);
                 var codeGenerator = CreateCodeGenerator(file);                
                 var newFileHash = new Lazy<byte[]>(() => file.ComputeHash());
