@@ -151,7 +151,7 @@ namespace Overby.LINQPad.FileDriver
                             using (writer.Brackets($@"public {ReaderClassName}()"))
                             {
                                 // init buffer
-                                writer.WriteLine($@"_buffer = new Overby.LINQPad.FileDriver.BufferedEnumerable<{RecordClassName}>(Read());");
+                                writer.WriteLine($@"_buffer = LINQPad.Util.Cache(() => new Overby.LINQPad.FileDriver.BufferedEnumerable<{RecordClassName}>(Read()) );");
                             }
 
                             // file path property
@@ -291,6 +291,7 @@ rootConfig.Remove(fileConfig);");
             {
                 typeof(CsvRecord).Assembly.Location,
                 typeof(DynamicDriver).Assembly.Location,
+                typeof(Util).Assembly.Location
             }).ToArray();
 
             // CompileSource is a static helper method to compile C# source code using LINQPad's built-in Roslyn libraries.
