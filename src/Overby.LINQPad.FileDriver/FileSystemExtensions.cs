@@ -15,13 +15,13 @@ namespace Overby.LINQPad.FileDriver
             using var stream = file.OpenRead();
             using var md5 = MD5.Create();
             return md5.ComputeHash(stream);
-        }
-
-        public static string GetRelativePathFrom(this FileSystemInfo to, FileSystemInfo from) =>
-            from.GetRelativePathTo(to);
+        }    
 
         public static string GetRelativePathTo(this FileSystemInfo from, FileSystemInfo to)
         {
+#if NETCORE
+            return Path.GetRelativePath(from.FullName, to.FullName);
+#else
             static string getPath(FileSystemInfo fsi) =>
                 fsi is DirectoryInfo d ? d.FullName.TrimEnd('\\') + "\\" : fsi.FullName;
 
@@ -35,6 +35,7 @@ namespace Overby.LINQPad.FileDriver
             var relativePath = Uri.UnescapeDataString(relativeUri.ToString());
 
             return relativePath.Replace('/', Path.DirectorySeparatorChar);
+#endif
         }
 
         public static DirectoryInfo GetParentDirectory(this FileSystemInfo fileSystemInfo)
