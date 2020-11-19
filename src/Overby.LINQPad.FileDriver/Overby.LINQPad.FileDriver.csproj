@@ -7,16 +7,12 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageTags>linqpaddriver</PackageTags>
 		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-		<Version>0.0.1-alpha6</Version>
-		<FileVersion>0.0.1.6</FileVersion>
-		<PackageReleaseNotes>fixes a bool parsing bug
-browse folder; auto update connection display name
-fixed identifier generation; fixed csv type inference; there's a bug w/ config saving
-some type inference tests
-Always replace instances when deserializing. Always create new DefaultStringValues instances.
-debugging changes: single threaded population in debug mode.
-file config hashing to allow population when config changes
-hidden config files</PackageReleaseNotes>
+		<Version>0.0.1-alpha7</Version>
+		<FileVersion>0.0.1.7</FileVersion>
+		<PackageReleaseNotes>fixes a parsing bug
+config api
+file manipulation
+virtual/auto csv headers</PackageReleaseNotes>
 		<Description>Query local data files in LINQPad!</Description>
 		<Copyright>2020 Ronnie Overby</Copyright>
 		<RepositoryType>git</RepositoryType>
