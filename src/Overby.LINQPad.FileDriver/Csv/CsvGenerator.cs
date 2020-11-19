@@ -75,7 +75,7 @@ namespace Overby.LINQPad.FileDriver.Csv
 
                 return new CompositeTextReader(new TextReader[]
                 {
-                    new StringReader(csvConfig.Header + Environment.NewLine),
+                    new StringReader(csvConfig.Header.Trim() + Environment.NewLine),
                     fileReader
                 });
             }
@@ -118,13 +118,25 @@ namespace Overby.LINQPad.FileDriver.Csv
 
             return (GenerateRecordMembers, GenerateEnumeratorImplementation);
 
-          
+
 
             void GenerateRecordMembers(TextWriter writer) =>
                 writer.WriteLines(recordProperties.Select(x => x.propDef));
 
+
+            string GenerateNewStreamReaderCode() =>
+                $"new System.IO.StreamReader({ReaderFilePathPropertyName})";
+
+            string GenerateNewTextReaderCode() => 
+                csvConfig.Header.IsNullOrWhiteSpace()
+                ? GenerateNewStreamReaderCode()
+                : $@"new Overby.LINQPad.FileDriver.CompositeTextReader(new System.IO.TextReader[] {{
+                        new System.IO.StringReader({(csvConfig.Header.Trim() + Environment.NewLine).ToLiteral()}),
+                        {GenerateNewStreamReaderCode()}
+                    }})";
+
             void GenerateEnumeratorImplementation(TextWriter writer) => writer.WriteLine($@"
-using(var {reader} = new System.IO.StreamReader({ReaderFilePathPropertyName}))
+using(var {reader} = {GenerateNewTextReaderCode()} )
 {{
     var {csvRecords} = Overby.Extensions.Text.CsvParsingExtensions
         .ReadCsvWithHeader({reader}, delimiter: {csvConfig.Delimiter.ToLiteral()});

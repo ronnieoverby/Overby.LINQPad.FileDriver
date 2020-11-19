@@ -144,16 +144,6 @@ namespace Overby.LINQPad.FileDriver
                         writer.MemberComment("Reader for " + fileTag.File.FullName);
                         using (writer.Brackets($"public class {ReaderClassName} : {IEnumerable(RecordClassName)}"))
                         {
-                            // buffered enumerable field
-                            writer.WriteLine($@"private readonly Overby.LINQPad.FileDriver.BufferedEnumerable<{RecordClassName}> _buffer;");
-
-                            // ctor
-                            using (writer.Brackets($@"public {ReaderClassName}()"))
-                            {
-                                // init buffer
-                                writer.WriteLine($@"_buffer = LINQPad.Util.Cache(() => new Overby.LINQPad.FileDriver.BufferedEnumerable<{RecordClassName}>(Read()) );");
-                            }
-
                             // file path property
                             writer.MemberComment("Path to " + fileTag.File.FullName);
                             writer.WriteLine(@$"
@@ -179,7 +169,7 @@ namespace Overby.LINQPad.FileDriver
         .GetRootConfig({root.FullName.ToLiteral()})
         .GetFileConfig({fileConfig.RelativePath.ToLiteral()});
 
-    var userConfig = ({userConfigType})fileConfig.GetUserConfig();
+    var userConfig = ({userConfigType})fileConfig.GetUserConfig({fileTag.File.FullName.ToLiteral()});
     configure(new Configuration(userConfig));
     fileConfig.UpdateFromUserConfig(userConfig);");
                             }
@@ -209,15 +199,11 @@ var fileConfig = rootConfig.GetFileConfig({fileConfig.RelativePath.ToLiteral()})
 rootConfig.Remove(fileConfig);");
                             }
 
-                            // Read methods
-                            writer.MemberComment("Reads records directly from " + fileTag.File.FullName);
-                            using (writer.Brackets(
-                                $"public {IEnumerable(RecordClassName)} Read()"))
-                                WriteEnumeratorImplementation(writer);
-
                             // GetEnumerator methods
                             writer.MemberComment("Reads records from " + fileTag.File.FullName);
-                            writer.WriteLine($"public System.Collections.Generic.IEnumerator<{RecordClassName}> GetEnumerator() => _buffer.GetEnumerator();");
+                            using (writer.Brackets(
+                                $"public System.Collections.Generic.IEnumerator<{RecordClassName}> GetEnumerator()"))
+                                WriteEnumeratorImplementation(writer);
 
                             writer.WriteLine($"System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();");
                         }
@@ -239,7 +225,7 @@ rootConfig.Remove(fileConfig);");
 
                         writer.MemberComment(fileTag.File.FullName);
                         writer.WriteLine(
-                            $"public {memberType} {fileIdentifier} {{get;}} = {readCall};");
+                            $"public {memberType} {fileIdentifier} => {readCall};");
                     }
 
                 using (writer.Region("Sub Folder Members"))
@@ -291,7 +277,6 @@ rootConfig.Remove(fileConfig);");
             {
                 typeof(CsvRecord).Assembly.Location,
                 typeof(DynamicDriver).Assembly.Location,
-                typeof(Util).Assembly.Location
             }).ToArray();
 
             // CompileSource is a static helper method to compile C# source code using LINQPad's built-in Roslyn libraries.

@@ -1,10 +1,8 @@
 ﻿using LINQPad.Extensibility.DataContext;
 using Newtonsoft.Json;
 using Overby.LINQPad.FileDriver.Configuration;
-using Overby.LINQPad.FileDriver.TypeInference;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Overby.LINQPad.FileDriver.Csv
 {
@@ -40,8 +38,8 @@ namespace Overby.LINQPad.FileDriver.Csv
 
         public override Type GetUserConfigType() => typeof(CsvUserConfig);
 
-        public override object GetUserConfig() =>
-            new CsvUserConfig
+        public override object GetUserConfig(string fileAbsolutePath) =>
+            new CsvUserConfig(fileAbsolutePath)
             {
                 Delimiter = Delimiter,
                 Header = Header,
@@ -70,7 +68,7 @@ namespace Overby.LINQPad.FileDriver.Csv
             if (cfg.NullStrings != null)
                 NullStrings = cfg.NullStrings;
 
-            Debugger.Launch();
+            //Debugger.Launch();
 
             if (cfg.BestTypes != null)
                 BestTypes = cfg.BestTypes;

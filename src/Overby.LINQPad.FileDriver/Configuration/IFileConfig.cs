@@ -23,7 +23,7 @@ namespace Overby.LINQPad.FileDriver.Configuration
         void HashConfigValues(Action<object> write);
 
         Type GetUserConfigType();
-        object GetUserConfig();
+        object GetUserConfig(string fileAbsolutePath);
         void UpdateFromUserConfig(object userConfig);
     }
 }

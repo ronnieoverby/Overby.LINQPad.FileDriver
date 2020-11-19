@@ -8,7 +8,7 @@ namespace Overby.LINQPad.FileDriver.Configuration
     /// </summary>
     class IgnoredFileConfig : FileConfig
     {
-        public override object GetUserConfig()
+        public override object GetUserConfig(string fileAbsPath)
         {
             return this;
         }
